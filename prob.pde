@@ -94,7 +94,7 @@ class GaussianDensityFunction extends ProbabilityDensityFunction{
   
   float probDensity(float x){
     float B = -sq(x-mean);
-    float C = 2*sq(mean);
+    float C = 2*sq(stddev);
     return A*exp(B/C);
   }
   

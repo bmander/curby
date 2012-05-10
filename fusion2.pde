@@ -43,8 +43,10 @@ int mode;
 
 ProbabilityDensityFunction accel_prior;
 ProbabilityDensityFunction last_bias_prior;
+ProbabilityDensityFunction bias_movement_prior;
 Histogram accel_posterior;
 Histogram last_bias_posterior;
+Histogram bias_posterior;
 State state;
 
 void keyPressed(){
@@ -103,21 +105,26 @@ void setup(){
   
   accel_prior=new DoubleExponentialDensityFunction( 4 );
   last_bias_prior=new UniformDensityFunction(-0.5,0.5);
-  //accel_posterior=new Histogram(-5,5,0.02);
-  //bias_posterior=new Histogram(-5,5,0.02);
+  bias_movement_prior = new GaussianDensityFunction(0,0.01);
 }
 
 void sampleonce(){
       //float accel_proposal = random(-1.5,1.5);
       //float bias_proposal = state.a-accel_proposal;
       float last_bias_proposal = random(-0.5,0.5);
-      float bias_movement_proposal = random(-0.5, 0.5);
+      float bias_movement_proposal = random(-0.1, 0.1);
+      float bias_proposal = last_bias_proposal+bias_movement_proposal;
       float accel_proposal = state.a-last_bias_proposal;
     
       //likelihood of sample
-      float likelihood = accel_prior.probDensity(accel_proposal)*last_bias_prior.probDensity(last_bias_proposal);
+      float likelihood = 1.0;
+      likelihood *= accel_prior.probDensity(accel_proposal);
+      likelihood *= last_bias_prior.probDensity(last_bias_proposal);
+      //float likelihood = accel_prior.probDensity(accel_proposal)*last_bias_prior.probDensity(last_bias_proposal);//*bias_movement_prior.probDensity(bias_movement_proposal);
+      
       accel_posterior.add( accel_proposal, likelihood );
       last_bias_posterior.add( last_bias_proposal, likelihood );
+      bias_posterior.add( bias_movement_proposal, bias_movement_prior.probDensity(bias_movement_proposal) );
 }
 
 void sample(int n){
@@ -174,6 +181,7 @@ void draw(){
     
     accel_posterior=new Histogram(-5,5,0.02);
     last_bias_posterior=new Histogram(-5,5,0.02);
+    bias_posterior=new Histogram(-5,5,0.02);
     sample(20000);
   }
   
@@ -192,7 +200,8 @@ void draw(){
     if(accel_posterior!=null&&last_bias_posterior!=null){
       fill(0);
       accel_posterior.draw(width/2,2*height/3,200,0.01);
-      last_bias_posterior.draw(width/2,height/3,200,0.01);
+      last_bias_posterior.draw(width/2,height/3,200,0.002);
+      bias_posterior.draw(width/2,0,200,0.0001);
     }
     
     text("'a' prior distribution",5,20);
