@@ -178,8 +178,10 @@ void draw(){
       } else {
         dt = t - state.t;
         
-        state.v = state.v + state.a*dt;
-        state.s = state.s + state.v*dt;
+        if(state.a_dist!=null){
+          state.v = state.v + state.a_maxprob*dt;
+          state.s = state.s + state.v*dt;
+        }
         state.a = a;
         state.t = t;
       }
@@ -206,27 +208,32 @@ void draw(){
   }
  
  
-  //draw 
+  //draw
   if(mode==MODE_PROB){
     background(255);
     
+    //draw priors
     stroke(255,0,0);
-    accel_prior.draw( -2.0, 2.0, width/2, 2*height/3, 75, 100.0);
-    last_bias_prior.draw(-2.0,2.0,width/2, 1*height/3, 75, 100.0);
+    accel_prior.draw( -2.0, 2.0, width/2, 2*height/3, 75, 200.0);
+    last_bias_prior.draw(-2.0,2.0,width/2, 1*height/3, 15, 200.0);
     
+    //draw posteriors
     if(accel_posterior!=null&&last_bias_posterior!=null){
       fill(0);
-      accel_posterior.draw(width/2,2*height/3,200,0.000001);
-      last_bias_posterior.draw(width/2,height/3,200,0.000001);
-      bias_posterior.draw(width/2,0,200,0.000001);
+      accel_posterior.draw(width/2,2*height/3,200,0.000002);
+      last_bias_posterior.draw(width/2,height/3,200,0.000002);
+      bias_posterior.draw(width/2,0,200,0.000002);
     }
     
+    //draw text
+    fill(255,0,0);
     text("'a' prior distribution",5,20);
     text("'last bias' prior distribution",5,20+height/3);
     fill(0,0,0);
     text("'a' posterior distribution",5,20+20);
     text("'last bias' posterior distribution",5,20+height/3+20);
-    fill(255,0,0);
+    text("'bias' posterior distribution",5,20+2*height/3+20);
+    fill(0,0,0);
   } else {
     if(state!=null){
       background(255);
