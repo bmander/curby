@@ -118,7 +118,7 @@ class Histogram {
     return int((val-this.left)/pitch);
   }
   
-  void draw(float shiftx, float shifty){
+  void draw(float shiftx, float shifty, float scalex, float scaley){
     strokeWeight(1);
     fill(0);
     noStroke();
@@ -129,7 +129,7 @@ class Histogram {
       
       
       //line(shift+x,height-0,shift+x,height-y);
-      rect(shiftx+x,height-shifty,pitch,-y);
+      rect(shiftx+x*scalex,height-shifty,pitch*scalex,-y*scaley);
     }
   }
 }

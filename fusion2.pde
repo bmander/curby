@@ -37,29 +37,46 @@ IMU imu;
 PFont font;
 boolean running;
 boolean runonce;
+boolean sampling;
 int mode;
 
 ProbabilityDensityFunction accel_prior;
+ProbabilityDensityFunction bias_prior;
+Histogram accel_posterior;
+Histogram bias_posterior;
 State state;
 
 void keyPressed(){
-  if(key==' '){
+  if(key==' '){ //reset
     state.s=0;
     state.v=0;
-  } else if(key=='p'){
+  } else if(key=='p'){ //pause
     if(running){
       running=false;
     } else {
       imu.clear();
       running=true;
     }
-  } else if(key=='n'){
+  } else if(key=='n'){  //next
+    bias_prior = new HistogramDensityFunction(bias_posterior);
+  
+    accel_posterior=new Histogram(-2,2,0.02);
+    bias_posterior=new Histogram(-2,2,0.02);
+  
     runonce=true;
-  } else if(key=='m'){
+  } else if(key=='m'){  //mode
     if(mode==MODE_AVS){
       mode=MODE_PROB;
     } else{
       mode=MODE_AVS;
+    }
+  } else if(key=='s'){
+    if(!sampling){
+      accel_posterior=new Histogram(-2,2,0.02);
+      bias_posterior=new Histogram(-2,2,0.02);
+      sampling=true;
+    } else{
+      sampling=false;
     }
   }
 }
@@ -70,7 +87,7 @@ void setup(){
   font= loadFont("ArialMT-14.vlw");
   textFont(font);
   
-  //imu = new IMU(this, serialPort);
+  imu = new IMU(this, serialPort);
   
   state=null;
   running=true;
@@ -78,11 +95,12 @@ void setup(){
   mode=MODE_AVS;
   
   accel_prior=new DoubleExponentialDensityFunction( 4 );
+  bias_prior=new UniformDensityFunction(-0.5,0.5);
 }
 
 void draw(){
   float dt=0;
-  /*
+  
   // until the serial stream runs dry
   while(running || runonce){
     
@@ -118,14 +136,39 @@ void draw(){
     runonce=false;
     
   }
-  */
+  
+  
+  if(sampling && state!=null){
+    for(int i=0; i<20; i++){
+      float accel_proposal = random(-1.5,1.5);
+      float bias_proposal = state.a-accel_proposal;
+    
+      //likelihood of sample
+      float likelihood = accel_prior.probDensity(accel_proposal)*bias_prior.probDensity(bias_proposal);
+      accel_posterior.add( accel_proposal, likelihood );
+      bias_posterior.add( bias_proposal, likelihood );
+    }
+  }
+  
   if(mode==MODE_PROB){
     background(255);
     
     stroke(255,0,0);
     accel_prior.draw( -2.0, 2.0, width/2, 2*height/3, 75, 200.0);
+    bias_prior.draw(-2.0,2.0,width/2, 1*height/3, 75, 200.0);
+    
+    if(accel_posterior!=null&&bias_posterior!=null){
+      fill(0);
+      accel_posterior.draw(width/2,2*height/3,200,0.01);
+      bias_posterior.draw(width/2,height/3,200,0.01);
+    }
+    
     text("'a' prior distribution",5,20);
-    fill(28);
+    text("'bias' prior distribution",5,20+height/3);
+    fill(0,0,0);
+    text("'a' posterior distribution",5,20+20);
+    text("'bias' posterior distribution",5,20+height/3+20);
+    fill(255,0,0);
   } else {
     if(state!=null){
       background(255);
