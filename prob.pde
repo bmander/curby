@@ -78,6 +78,32 @@ class HistogramDensityFunction extends ProbabilityDensityFunction{
   }
 }
 
+class GaussianDensityFunction extends ProbabilityDensityFunction{
+  float mean;
+  float stddev;
+  
+  float A;
+  
+  GaussianDensityFunction( float mean, float stddev ){
+    this.mean=mean;
+    this.stddev=stddev;
+    
+    //density coefficient
+    this.A = 1/sqrt(2*PI*sq(stddev));
+  }
+  
+  float probDensity(float x){
+    float B = -sq(x-mean);
+    float C = 2*sq(mean);
+    return A*exp(B/C);
+  }
+  
+  float sample(){
+    PVector vec = gaussian(this.stddev);
+    return this.mean+vec.x;
+  }
+}
+
 PVector gaussian(float stddev) {
   float x1, x2, w, y1, y2;
  
