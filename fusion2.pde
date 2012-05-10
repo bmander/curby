@@ -120,7 +120,7 @@ void setup(){
   runonce=false;
   mode=MODE_PROB;
   
-  accel_prior=new DoubleExponentialDensityFunction( 4 );
+  accel_prior=new DoubleExponentialDensityFunction( 0, 4 );
   last_bias_prior=new UniformDensityFunction(-0.5,0.5);
   bias_movement_prior = new GaussianDensityFunction(0,0.002);
   noise_prior = new GaussianDensityFunction(0,0.038);
@@ -181,6 +181,8 @@ void draw(){
         if(state.a_dist!=null){
           state.v = state.v + state.a_maxprob*dt;
           state.s = state.s + state.v*dt;
+          
+          accel_prior=new DoubleExponentialDensityFunction( -state.v*1.0, 4 );
         }
         state.a = a;
         state.t = t;

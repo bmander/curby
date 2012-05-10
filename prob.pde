@@ -22,12 +22,14 @@ abstract class ProbabilityDensityFunction{
 
 class DoubleExponentialDensityFunction extends ProbabilityDensityFunction{
   float tau;
-  DoubleExponentialDensityFunction(float tau){
+  float mean;
+  DoubleExponentialDensityFunction(float mean, float tau){
     this.tau=tau;
+    this.mean=mean;
   }
   
   float probDensity(float x){
-    return 0.5*tau*exp(-tau*abs(x));
+    return 0.5*tau*exp(-tau*abs(x-mean));
   }
   
   float sample(){
