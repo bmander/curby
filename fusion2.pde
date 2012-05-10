@@ -38,6 +38,7 @@ PFont font;
 boolean running;
 boolean runonce;
 boolean sampling;
+boolean autosample=true;
 int mode;
 
 ProbabilityDensityFunction accel_prior;
@@ -60,8 +61,10 @@ void keyPressed(){
   } else if(key=='n'){  //next
     bias_prior = new HistogramDensityFunction(bias_posterior);
   
-    accel_posterior=new Histogram(-2,2,0.02);
-    bias_posterior=new Histogram(-2,2,0.02);
+    accel_posterior=new Histogram(-5,5,0.02);
+    bias_posterior=new Histogram(-5,5,0.02);
+    
+
   
     runonce=true;
   } else if(key=='m'){  //mode
@@ -70,14 +73,16 @@ void keyPressed(){
     } else{
       mode=MODE_AVS;
     }
-  } else if(key=='s'){
+  } else if(key=='s'){ //sample
     if(!sampling){
-      accel_posterior=new Histogram(-2,2,0.02);
-      bias_posterior=new Histogram(-2,2,0.02);
+      accel_posterior=new Histogram(-5,5,0.02);
+      bias_posterior=new Histogram(-5,5,0.02);
       sampling=true;
     } else{
       sampling=false;
     }
+  } else if(key=='a'){ //autosample
+    autosample=!autosample;
   }
 }
 
@@ -87,19 +92,37 @@ void setup(){
   font= loadFont("ArialMT-14.vlw");
   textFont(font);
   
+  //frameRate(1);
+  
   imu = new IMU(this, serialPort);
   
   state=null;
   running=true;
   runonce=false;
-  mode=MODE_AVS;
+  mode=MODE_PROB;
   
   accel_prior=new DoubleExponentialDensityFunction( 4 );
   bias_prior=new UniformDensityFunction(-0.5,0.5);
+  //accel_posterior=new Histogram(-5,5,0.02);
+  //bias_posterior=new Histogram(-5,5,0.02);
+}
+
+void sample(int n){
+  
+     for(int i=0; i<n; i++){
+      float accel_proposal = random(-1.5,1.5);
+      float bias_proposal = state.a-accel_proposal;
+    
+      //likelihood of sample
+      float likelihood = accel_prior.probDensity(accel_proposal)*bias_prior.probDensity(bias_proposal);
+      accel_posterior.add( accel_proposal, likelihood );
+      bias_posterior.add( bias_proposal, likelihood );
+    }
 }
 
 void draw(){
   float dt=0;
+ 
   
   // until the serial stream runs dry
   while(running || runonce){
@@ -137,17 +160,19 @@ void draw(){
     
   }
   
+  if(state!=null){
+    if(bias_posterior!=null){
+      bias_prior = new HistogramDensityFunction(bias_posterior);
+    }
+    
+    accel_posterior=new Histogram(-5,5,0.02);
+    bias_posterior=new Histogram(-5,5,0.02);
+    sample(20000);
+  }
+  
   
   if(sampling && state!=null){
-    for(int i=0; i<20; i++){
-      float accel_proposal = random(-1.5,1.5);
-      float bias_proposal = state.a-accel_proposal;
-    
-      //likelihood of sample
-      float likelihood = accel_prior.probDensity(accel_proposal)*bias_prior.probDensity(bias_proposal);
-      accel_posterior.add( accel_proposal, likelihood );
-      bias_posterior.add( bias_proposal, likelihood );
-    }
+    sample(40000);
   }
   
   if(mode==MODE_PROB){
@@ -162,6 +187,7 @@ void draw(){
       accel_posterior.draw(width/2,2*height/3,200,0.01);
       bias_posterior.draw(width/2,height/3,200,0.01);
     }
+    
     
     text("'a' prior distribution",5,20);
     text("'bias' prior distribution",5,20+height/3);
