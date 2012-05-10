@@ -6,12 +6,6 @@ float MPERSSQUARED_PER_BIT = (1/256.0)*9.807; //(g/LSB)*(m*s^-2/g)=m*s^-2/LSB
 int MODE_AVS = 0;
 int MODE_PROB = 1;
 
-IMU imu;
-PFont font;
-boolean running;
-boolean runonce;
-int mode;
-
 class State{
   float s;
   float v;
@@ -39,6 +33,13 @@ class State{
   }
 }
 
+IMU imu;
+PFont font;
+boolean running;
+boolean runonce;
+int mode;
+
+ProbabilityDensityFunction accel_prior;
 State state;
 
 void keyPressed(){
@@ -69,17 +70,19 @@ void setup(){
   font= loadFont("ArialMT-14.vlw");
   textFont(font);
   
-  imu = new IMU(this, serialPort);
+  //imu = new IMU(this, serialPort);
   
   state=null;
   running=true;
   runonce=false;
   mode=MODE_AVS;
+  
+  accel_prior=new DoubleExponentialDensityFunction( 4 );
 }
 
 void draw(){
   float dt=0;
-  
+  /*
   // until the serial stream runs dry
   while(running || runonce){
     
@@ -94,7 +97,6 @@ void draw(){
       // convert to SI units
       float a = reading.ax*MPERSSQUARED_PER_BIT;
       float t = reading.t/1000.0;
-      //float dt=0;
       
       // if this is the first time-slice, apply initial conditions
       if(state==null){
@@ -110,27 +112,19 @@ void draw(){
         state.t = t;
       }
       
-      // slap it all on the screen
-      /*if(mode==MODE_AVS){
-        background(255);
-        text("dt="+fround(dt,3)+" s", width-200,height-20 );
-        text("a="+fround(state.a,3)+" ms^-2", 5, 20 );
-        text("v="+fround(state.v,3)+" ms^-1", 5, height/3+20);
-        text("s="+fround(state.s,3)+" m", 5, 2*height/3+20);
-        fill(28);
-        state.draw(200.0);
-      }*/
-      
     } catch (IMUParseException e){
     }
     
     runonce=false;
     
   }
-  
+  */
   if(mode==MODE_PROB){
     background(255);
-    text("prob mode", 100,100);
+    
+    stroke(255,0,0);
+    accel_prior.draw( -2.0, 2.0, width/2, 2*height/3, 75, 200.0);
+    text("'a' prior distribution",5,20);
     fill(28);
   } else {
     if(state!=null){
