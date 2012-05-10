@@ -1,0 +1,1 @@
+Communicates with a digital 6DOF mediated by an arduino running the firmware at https://github.com/bmander/rawimu. Top reading is acceleration. Middle reading is velocity. Bottom reading is displacement. Hit spacebar to reset the computed state - velocity and displacement - back to zero.
