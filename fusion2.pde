@@ -54,7 +54,6 @@ PFont font;
 boolean running;
 boolean runonce;
 boolean sampling;
-boolean autosample=true;
 int mode;
 
 ProbabilityDensityFunction accel_prior;
@@ -100,9 +99,7 @@ void keyPressed(){
     } else{
       sampling=false;
     }
-  } else if(key=='a'){ //autosample
-    autosample=!autosample;
-  }
+  } 
 }
 
 void setup(){
