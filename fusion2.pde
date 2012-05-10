@@ -107,16 +107,22 @@ void setup(){
   //bias_posterior=new Histogram(-5,5,0.02);
 }
 
-void sample(int n){
-  
-     for(int i=0; i<n; i++){
-      float accel_proposal = random(-1.5,1.5);
-      float bias_proposal = state.a-accel_proposal;
+void sampleonce(){
+      //float accel_proposal = random(-1.5,1.5);
+      //float bias_proposal = state.a-accel_proposal;
+      float bias_proposal = random(-0.5,0.5);
+      float accel_proposal = state.a-bias_proposal;
     
       //likelihood of sample
       float likelihood = accel_prior.probDensity(accel_proposal)*bias_prior.probDensity(bias_proposal);
       accel_posterior.add( accel_proposal, likelihood );
       bias_posterior.add( bias_proposal, likelihood );
+}
+
+void sample(int n){
+  
+    for(int i=0; i<n; i++){
+      sampleonce();
     }
 }
 
@@ -207,4 +213,5 @@ void draw(){
     }
   }
   
+  delay(1000);
 }
