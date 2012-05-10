@@ -150,6 +150,18 @@ class HistogramDensityFunction extends ProbabilityDensityFunction{
   float right(){
     return this.rightval;
   }
+  
+  float max(){
+    int winner=0;
+    float winneramount=-1;
+    for(int i=0; i<this.histogram.buckets.length; i++){
+      if(this.histogram.buckets[i]>winneramount){
+        winneramount=this.histogram.buckets[i];
+        winner=i;
+      }
+    }
+    return this.histogram.left+this.histogram.pitch*(winner+0.5);
+  }
 }
 
 class GaussianDensityFunction extends ProbabilityDensityFunction{

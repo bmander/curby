@@ -12,11 +12,21 @@ class State{
   float a;
   float t;
   
+  HistogramDensityFunction a_dist;
+  float a_maxprob;
+  
   State(float a, float t){
     s=0;
     v=0;
     a=a;
     t=t;
+    
+    a_dist=null;
+  }
+  
+  void setADist(HistogramDensityFunction a_dist){
+    this.a_dist=a_dist;
+    this.a_maxprob = a_dist.max();
   }
   
   void draw(float zoom){
@@ -30,6 +40,12 @@ class State{
     line(zoom*a+width/2,0,zoom*a+width/2,height/3);
     line(zoom*v+width/2,height/3,zoom*v+width/2,2*height/3);
     line(zoom*s+width/2,2*height/3,zoom*s+width/2,height);
+    
+    if(this.a_dist!=null){
+      strokeWeight(2);
+      stroke(0,0,255);
+      line(zoom*a_maxprob+width/2,0,zoom*a_maxprob+width/2,height/3);
+    }
   }
 }
 
@@ -111,12 +127,8 @@ void setup(){
 }
 
 void sampleonce(){
-      //float last_bias_proposal = last_bias_prior.sample();
       float last_bias_proposal = random(last_bias_prior.left(),last_bias_prior.right());
-      //println( "last bias area of support: "+last_bias_prior.left()+"-"+last_bias_prior.right() );
-      //float bias_movement_proposal = bias_movement_prior.sample();
       float bias_movement_proposal = random(bias_movement_prior.left(), bias_movement_prior.right());
-      //float noise_proposal = noise_prior.sample();
       float noise_proposal = random(noise_prior.left(),noise_prior.right());
       float bias_proposal = last_bias_proposal+bias_movement_proposal;
       float accel_proposal = state.a-(bias_proposal+noise_proposal);
@@ -143,8 +155,7 @@ void sample(int n){
 void draw(){
   float dt=0;
  
-  
-  // until the serial stream runs dry
+  // update the state until the serial stream runs dry
   while(running || runonce){
     
     try{
@@ -180,6 +191,7 @@ void draw(){
     
   }
   
+  // update bayes net
   if(state!=null){
     if(last_bias_posterior!=null){
       last_bias_prior = new HistogramDensityFunction(bias_posterior);
@@ -189,13 +201,12 @@ void draw(){
     last_bias_posterior=new Histogram(last_bias_prior.left(),last_bias_prior.right(),0.02);
     bias_posterior=new Histogram(-5,5,0.02);
     sample(10000);
+    
+    state.setADist( new HistogramDensityFunction( accel_posterior ) );
   }
-  
-  
-  if(sampling && state!=null){
-    sample(40000);
-  }
-  
+ 
+ 
+  //draw 
   if(mode==MODE_PROB){
     background(255);
     
