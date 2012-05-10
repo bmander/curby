@@ -13,6 +13,11 @@ abstract class ProbabilityDensityFunction{
   }
   
   abstract float probDensity(float x);
+  
+  abstract float sample();
+  
+  abstract float left();
+  abstract float right();
 }
 
 class DoubleExponentialDensityFunction extends ProbabilityDensityFunction{
@@ -24,6 +29,20 @@ class DoubleExponentialDensityFunction extends ProbabilityDensityFunction{
   float probDensity(float x){
     return 0.5*tau*exp(-tau*abs(x));
   }
+  
+  float sample(){
+    throw new UnsupportedOperationException();
+  }
+  
+  float left(){
+    return -log(tau/(2*0.001))/tau;
+  }
+  
+  float right(){
+    return log(tau/(2*0.001))/tau;
+  }
+  
+  
 }
 
 class UniformDensityFunction extends ProbabilityDensityFunction{
@@ -42,13 +61,43 @@ class UniformDensityFunction extends ProbabilityDensityFunction{
       return (1/(high-low));
     }
   }
+  
+  float sample(){
+    return random(low,high);
+  }
+  
+  float left(){
+    return this.low;
+  }
+  
+  float right(){
+    return this.high;
+  }
 }
 
 class HistogramDensityFunction extends ProbabilityDensityFunction{
   Histogram histogram;
   
+  // if the entire prob distribution is zero, rightval=this.histogram.left and leftval=this.histogram.right
+  float leftval; //leftmost point with non-zero prob density
+  float rightval; //rightmost point with non-zero prob density
+  
   HistogramDensityFunction(Histogram histogram){
     this.histogram=histogram;
+    
+    // if 
+    for(int i=0; i<this.histogram.buckets.length; i++){
+      this.leftval = this.histogram.left+i*this.histogram.pitch;
+      if(this.histogram.buckets[i]>0){
+        break;
+      }
+    }
+    for(int i=this.histogram.buckets.length-1; i>=0; i--){
+      this.rightval = this.histogram.left+(i+1)*this.histogram.pitch;
+      if(this.histogram.buckets[i]>0){
+        break;
+      }
+    }
   }
   
   float probDensity(float x){
@@ -76,6 +125,31 @@ class HistogramDensityFunction extends ProbabilityDensityFunction{
     //probability density is the product of the two
     return bucketprob*bucketdensity;
   }
+  
+  float sample(){
+    float x = random(0,this.histogram.mass);
+    
+    float ll=0;
+    for(int i=0; i<this.histogram.buckets.length; i++){
+      float bucketmass = this.histogram.buckets[i];
+      if( x>= ll && x<=ll+bucketmass){
+        //the sample is inside this bucket
+        float cc = (x-ll)/bucketmass;
+        return this.histogram.left+(i+cc)*this.histogram.pitch;
+      }
+      ll += bucketmass;
+    }
+    
+    return -1000000; //something went terribly wrong
+  }
+  
+  float left(){
+    return this.leftval;
+  }
+  
+  float right(){
+    return this.rightval;
+  }
 }
 
 class GaussianDensityFunction extends ProbabilityDensityFunction{
@@ -101,6 +175,14 @@ class GaussianDensityFunction extends ProbabilityDensityFunction{
   float sample(){
     PVector vec = gaussian(this.stddev);
     return this.mean+vec.x;
+  }
+  
+  float left(){
+    return -5*this.stddev;
+  }
+  
+  float right(){
+    return 5*this.stddev;
   }
 }
 

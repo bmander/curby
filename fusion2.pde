@@ -111,11 +111,13 @@ void setup(){
 }
 
 void sampleonce(){
-      //float accel_proposal = random(-1.5,1.5);
-      //float bias_proposal = state.a-accel_proposal;
-      float last_bias_proposal = random(-0.5,0.5);
-      float bias_movement_proposal = random(-0.1, 0.1);
-      float noise_proposal = random(-0.3,0.3);
+      //float last_bias_proposal = last_bias_prior.sample();
+      float last_bias_proposal = random(last_bias_prior.left(),last_bias_prior.right());
+      //println( "last bias area of support: "+last_bias_prior.left()+"-"+last_bias_prior.right() );
+      //float bias_movement_proposal = bias_movement_prior.sample();
+      float bias_movement_proposal = random(bias_movement_prior.left(), bias_movement_prior.right());
+      //float noise_proposal = noise_prior.sample();
+      float noise_proposal = random(noise_prior.left(),noise_prior.right());
       float bias_proposal = last_bias_proposal+bias_movement_proposal;
       float accel_proposal = state.a-(bias_proposal+noise_proposal);
     
@@ -184,9 +186,9 @@ void draw(){
     }
     
     accel_posterior=new Histogram(-5,5,0.02);
-    last_bias_posterior=new Histogram(-5,5,0.02);
+    last_bias_posterior=new Histogram(last_bias_prior.left(),last_bias_prior.right(),0.02);
     bias_posterior=new Histogram(-5,5,0.02);
-    sample(50000);
+    sample(10000);
   }
   
   
@@ -203,9 +205,9 @@ void draw(){
     
     if(accel_posterior!=null&&last_bias_posterior!=null){
       fill(0);
-      accel_posterior.draw(width/2,2*height/3,200,0.00001);
-      last_bias_posterior.draw(width/2,height/3,200,0.00001);
-      bias_posterior.draw(width/2,0,200,0.00001);
+      accel_posterior.draw(width/2,2*height/3,200,0.000001);
+      last_bias_posterior.draw(width/2,height/3,200,0.000001);
+      bias_posterior.draw(width/2,0,200,0.000001);
     }
     
     text("'a' prior distribution",5,20);
@@ -226,5 +228,5 @@ void draw(){
     }
   }
   
-  //delay(20);
+  //delay(1000);
 }
