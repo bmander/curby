@@ -105,7 +105,7 @@ void setup(){
   
   accel_prior=new DoubleExponentialDensityFunction( 4 );
   last_bias_prior=new UniformDensityFunction(-0.5,0.5);
-  bias_movement_prior = new GaussianDensityFunction(0,0.01);
+  bias_movement_prior = new GaussianDensityFunction(0,0.002);
 }
 
 void sampleonce(){
@@ -114,17 +114,17 @@ void sampleonce(){
       float last_bias_proposal = random(-0.5,0.5);
       float bias_movement_proposal = random(-0.1, 0.1);
       float bias_proposal = last_bias_proposal+bias_movement_proposal;
-      float accel_proposal = state.a-last_bias_proposal;
+      float accel_proposal = state.a-bias_proposal;
     
       //likelihood of sample
       float likelihood = 1.0;
       likelihood *= accel_prior.probDensity(accel_proposal);
       likelihood *= last_bias_prior.probDensity(last_bias_proposal);
-      //float likelihood = accel_prior.probDensity(accel_proposal)*last_bias_prior.probDensity(last_bias_proposal);//*bias_movement_prior.probDensity(bias_movement_proposal);
+      likelihood *= bias_movement_prior.probDensity(bias_movement_proposal);
       
       accel_posterior.add( accel_proposal, likelihood );
       last_bias_posterior.add( last_bias_proposal, likelihood );
-      bias_posterior.add( bias_movement_proposal, bias_movement_prior.probDensity(bias_movement_proposal) );
+      bias_posterior.add( bias_proposal, likelihood );
 }
 
 void sample(int n){
@@ -176,7 +176,7 @@ void draw(){
   
   if(state!=null){
     if(last_bias_posterior!=null){
-      last_bias_prior = new HistogramDensityFunction(last_bias_posterior);
+      last_bias_prior = new HistogramDensityFunction(bias_posterior);
     }
     
     accel_posterior=new Histogram(-5,5,0.02);
@@ -194,13 +194,13 @@ void draw(){
     background(255);
     
     stroke(255,0,0);
-    accel_prior.draw( -2.0, 2.0, width/2, 2*height/3, 75, 200.0);
-    last_bias_prior.draw(-2.0,2.0,width/2, 1*height/3, 75, 200.0);
+    accel_prior.draw( -2.0, 2.0, width/2, 2*height/3, 75, 100.0);
+    last_bias_prior.draw(-2.0,2.0,width/2, 1*height/3, 75, 100.0);
     
     if(accel_posterior!=null&&last_bias_posterior!=null){
       fill(0);
-      accel_posterior.draw(width/2,2*height/3,200,0.01);
-      last_bias_posterior.draw(width/2,height/3,200,0.002);
+      accel_posterior.draw(width/2,2*height/3,200,0.0001);
+      last_bias_posterior.draw(width/2,height/3,200,0.0001);
       bias_posterior.draw(width/2,0,200,0.0001);
     }
     
@@ -222,5 +222,5 @@ void draw(){
     }
   }
   
-  delay(1000);
+  delay(20);
 }
