@@ -168,16 +168,21 @@ void draw(){
       float a = reading.ax*MPERSSQUARED_PER_BIT;
       float t = reading.t/1000.0;
       
+      // move the current state to the past
       laststate=state;
       
+      // pop a new state into the present, with measurements from the IMU
       state = new State(a,t);
+      
+      // if the past didn't exist, then this is the first measurement; no further work to do this iteration
       if(laststate==null){
         continue;
       }
-        
+      
+      // grab acceleration distribution from the last reading TODO: THIS IS DUMB
       state.a_dist=laststate.a_dist;
         
-      dt = t - laststate.t;
+      dt = state.t - laststate.t;
         
       if(laststate.a_dist!=null){
         state.v = laststate.v + laststate.a_maxprob*dt;
@@ -196,16 +201,13 @@ void draw(){
   // update bayes net
   if(state!=null){
 
-    if(last_bias_posterior!=null){
-      last_bias_prior = new HistogramDensityFunction(bias_posterior);
-    }
-    
     accel_posterior=new Histogram(-5,5,0.02);
     last_bias_posterior=new Histogram(last_bias_prior.left(),last_bias_prior.right(),0.02);
     bias_posterior=new Histogram(-5,5,0.02);
+    
     sample(10000);
     
-
+    last_bias_prior = new HistogramDensityFunction(bias_posterior);
     
     state.setADist( new HistogramDensityFunction( accel_posterior ) );
   }
