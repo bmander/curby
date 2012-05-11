@@ -48,7 +48,8 @@ class State{
     if(this.a!=null){
       strokeWeight(2);
       stroke(0,0,255);
-      line(zoom*a.argmax()+width/2,0,zoom*a.argmax()+width/2,height/3);
+      a.draw(-2.0, 2.0, width/2, 2*height/3, 10, 200.0);
+      //line(zoom*a.argmax()+width/2,0,zoom*a.argmax()+width/2,height/3);
     }
   }
 }
@@ -251,11 +252,13 @@ void draw(){
   } else {
     if(state!=null){
       background(255);
+      fill(28);
       text("dt="+fround(dt,3)+" s", width-200,height-20 );
-      text("a="+fround(state.a_obs,3)+" ms^-2", 5, 20 );
+      text("a_obs="+fround(state.a_obs,3)+" ms^-2", 5, 20 );
       text("v="+fround(state.v,3)+" ms^-1", 5, height/3+20);
       text("s="+fround(state.s,3)+" m", 5, 2*height/3+20);
-      fill(28);
+      fill(0,0,255);
+      text("argmax(a)="+fround(state.a.argmax(),2)+" ms^-2", 5, 20+20);
       state.draw(200.0);
     }
   }
