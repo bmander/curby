@@ -20,6 +20,8 @@ abstract class ProbabilityDensityFunction{
   
   abstract float left();
   abstract float right();
+  
+  abstract float argmax();
 }
 
 class DegenerateDensityFunction extends ProbabilityDensityFunction{
@@ -41,6 +43,10 @@ class DegenerateDensityFunction extends ProbabilityDensityFunction{
     return c;
   }
   
+  float argmax(){
+    return c;
+  }
+  
   float left(){
     return this.c;
   }
@@ -50,8 +56,9 @@ class DegenerateDensityFunction extends ProbabilityDensityFunction{
   }
   
   void draw(float left, float right, float shiftx, float shifty, float sc, float zoom){
-    line(shiftx,height-(shifty),shiftx,height-(shifty+sc));
+    line(shiftx+this.c*zoom,height-(shifty),shiftx+this.c*zoom,height-(shifty+sc));
   }
+ 
 }
 
 class DoubleExponentialDensityFunction extends ProbabilityDensityFunction{
@@ -76,6 +83,10 @@ class DoubleExponentialDensityFunction extends ProbabilityDensityFunction{
   
   float right(){
     return log(tau/(2*0.001))/tau;
+  }
+  
+  float argmax(){
+    throw new UnsupportedOperationException();
   }
   
   
@@ -108,6 +119,10 @@ class UniformDensityFunction extends ProbabilityDensityFunction{
   
   float right(){
     return this.high;
+  }
+  
+  float argmax(){
+    throw new UnsupportedOperationException();
   }
 }
 
@@ -187,7 +202,7 @@ class HistogramDensityFunction extends ProbabilityDensityFunction{
     return this.rightval;
   }
   
-  float max(){
+  float argmax(){
     int winner=0;
     float winneramount=-1;
     for(int i=0; i<this.histogram.buckets.length; i++){
@@ -231,6 +246,10 @@ class GaussianDensityFunction extends ProbabilityDensityFunction{
   
   float right(){
     return 5*this.stddev;
+  }
+  
+  float argmax(){
+    throw new UnsupportedOperationException();
   }
 }
 
