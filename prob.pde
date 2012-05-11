@@ -1,3 +1,5 @@
+float INFINITY = 10000000000000000.0;
+
 abstract class ProbabilityDensityFunction{
   void draw(float left, float right, float shiftx, float shifty, float sc, float zoom){
     
@@ -18,6 +20,34 @@ abstract class ProbabilityDensityFunction{
   
   abstract float left();
   abstract float right();
+}
+
+class CertaintyDensityFunction extends ProbabilityDensityFunction{
+  float c;
+  
+  CertaintyDensityFunction(float c){
+    this.c=c;
+  }
+  
+  float probDensity(float x){
+    if(x==c){
+      return INFINITY;
+    } else {
+      return 0;
+    }
+  }
+  
+  float sample(){
+    return c;
+  }
+  
+  float left(){
+    return this.c;
+  }
+  
+  float right(){
+    return this.c;
+  }
 }
 
 class DoubleExponentialDensityFunction extends ProbabilityDensityFunction{
