@@ -120,7 +120,7 @@ void setup(){
   
   accel_prior=new DoubleExponentialDensityFunction( 0, 4 );
   last_bias_prior=new UniformDensityFunction(-0.5,0.5);
-  bias_movement_prior = new GaussianDensityFunction(0,0.002);
+  bias_movement_prior = new GaussianDensityFunction(0,0.0005);
   noise_prior = new GaussianDensityFunction(0,0.038);
 }
 
