@@ -155,7 +155,7 @@ void sample(float a_obs, int n){
     }
 }
 
-void updateADist(State state){
+ProbabilityDensityFunction compute_accel(float a_obs){
     accel_posterior=new Histogram(-5,5,0.02);
     last_bias_posterior=new Histogram(last_bias_prior.left(),last_bias_prior.right(),0.02);
     bias_posterior=new Histogram(-5,5,0.02);
@@ -164,7 +164,7 @@ void updateADist(State state){
     
     last_bias_prior = new HistogramDensityFunction(bias_posterior);
     
-    state.setA( new HistogramDensityFunction( accel_posterior ) );
+    return new HistogramDensityFunction( accel_posterior );
 }
 
 void draw(){
@@ -182,21 +182,21 @@ void draw(){
       }
       
       // convert to SI units
-      float a = reading.ax*MPERSSQUARED_PER_BIT;
+      float a_obs = reading.ax*MPERSSQUARED_PER_BIT;
       float t = reading.t/1000.0;
       
       // move the current state to the past
       laststate=state;
       
       // pop a new state into the present, with measurements from the IMU
-      state = new State(a,t);
+      state = new State(a_obs,t);
       
       // if the past didn't exist, then this is the first measurement; no further work to do this iteration
       if(laststate==null){
         continue;
       }
       
-      updateADist(state);
+      state.a = compute_accel(a_obs);
       
       // grab acceleration distribution from the last reading TODO: THIS IS DUMB
       //state.a_dist=laststate.a_dist;
