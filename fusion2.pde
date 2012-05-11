@@ -6,54 +6,6 @@ float MPERSSQUARED_PER_BIT = (1/256.0)*9.807; //(g/LSB)*(m*s^-2/g)=m*s^-2/LSB
 int MODE_AVS = 0;
 int MODE_PROB = 1;
 
-class State{
-  //ProbabilityDensityFunction s;
-  //ProbabilityDensityFunction v;
-  //ProbabilityDensityFunction a;
-  //ProbabilityDensityFunction t;
-  
-  float s;
-  float v;
-  
-  float t;
-  ProbabilityDensityFunction a;
-  float a_obs;
-  
-  State(float a_obs, float t){
-    this.s=0;
-    this.v=0;
-    this.a_obs=a_obs;
-    this.t=t;
-    
-    this.a=null;
-  }
-  
-  void setA(ProbabilityDensityFunction a){
-    this.a=a;
-  }
-  
-  void draw(float zoom){
-    strokeWeight(0.5);
-    stroke(255,0,0);
-    line(width/2,0,width/2,height);
-    line(width/2-zoom,0,width/2-zoom,height);
-    line(width/2+zoom,0,width/2+zoom,height);
-    
-    stroke(0);
-    //a.draw( 0, 0, width/2, 2*height/3, height/3, zoom );
-    line(zoom*a_obs+width/2,0,zoom*a_obs+width/2,height/3);
-    line(zoom*v+width/2,height/3,zoom*v+width/2,2*height/3);
-    line(zoom*5*s+width/2,2*height/3,zoom*5*s+width/2,height);
-    
-    if(this.a!=null){
-      strokeWeight(2);
-      stroke(0,0,255);
-      a.draw(-2.0, 2.0, width/2, 2*height/3, 10, 200.0);
-      //line(zoom*a.argmax()+width/2,0,zoom*a.argmax()+width/2,height/3);
-    }
-  }
-}
-
 IMU imu;
 PFont font;
 boolean running;
@@ -73,8 +25,8 @@ State state;
 
 void keyPressed(){
   if(key==' '){ //reset
-    state.s=0;
-    state.v=0;
+    state.s=new DegenerateDensityFunction(0);
+    state.v=new DegenerateDensityFunction(0);
   } else if(key=='p'){ //pause
     if(running){
       running=false;
@@ -201,10 +153,10 @@ void draw(){
       dt = state.t - laststate.t;
         
       if(laststate.a!=null){
-        state.v = laststate.v + laststate.a.argmax()*dt;
-        state.s = laststate.s + laststate.v*dt;
+        state.v = new DegenerateDensityFunction(laststate.v.argmax() + laststate.a.argmax()*dt);
+        state.s = new DegenerateDensityFunction(laststate.s.argmax() + laststate.v.argmax()*dt);
           
-        accel_prior=new DoubleExponentialDensityFunction( -state.v*0.75, 4 );
+        accel_prior=new DoubleExponentialDensityFunction( -state.v.argmax()*0.75, 4 );
       }
       
     } catch (IMUParseException e){
@@ -252,8 +204,8 @@ void draw(){
       fill(28);
       text("dt="+fround(dt,3)+" s", width-200,height-20 );
       text("a_obs="+fround(state.a_obs,3)+" ms^-2", 5, 20 );
-      text("v="+fround(state.v,3)+" ms^-1", 5, height/3+20);
-      text("s="+fround(state.s,3)+" m", 5, 2*height/3+20);
+      text("v="+fround(state.v.argmax(),3)+" ms^-1", 5, height/3+20);
+      text("s="+fround(state.s.argmax(),3)+" m", 5, 2*height/3+20);
       fill(0,0,255);
       text("argmax(a)="+fround(state.a.argmax(),2)+" ms^-2", 5, 20+20);
       state.draw(200.0);
