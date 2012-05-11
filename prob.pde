@@ -48,6 +48,10 @@ class DegenerateDensityFunction extends ProbabilityDensityFunction{
   float right(){
     return this.c;
   }
+  
+  void draw(float left, float right, float shiftx, float shifty, float sc, float zoom){
+    line(shiftx,height-(shifty),shiftx,height-(shifty+sc));
+  }
 }
 
 class DoubleExponentialDensityFunction extends ProbabilityDensityFunction{
