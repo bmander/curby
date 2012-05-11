@@ -129,12 +129,12 @@ void setup(){
   noise_prior = new GaussianDensityFunction(0,0.038);
 }
 
-void sampleonce(State state){
+void sampleonce(float a_obs){
       float last_bias_proposal = random(last_bias_prior.left(),last_bias_prior.right());
       float bias_movement_proposal = random(bias_movement_prior.left(), bias_movement_prior.right());
       float noise_proposal = random(noise_prior.left(),noise_prior.right());
       float bias_proposal = last_bias_proposal+bias_movement_proposal;
-      float accel_proposal = state.a_obs-(bias_proposal+noise_proposal);
+      float accel_proposal = a_obs-(bias_proposal+noise_proposal);
     
       //likelihood of sample
       float likelihood = 1.0;
@@ -148,10 +148,10 @@ void sampleonce(State state){
       bias_posterior.add( bias_proposal, likelihood );
 }
 
-void sample(State state, int n){
+void sample(float a_obs, int n){
   
     for(int i=0; i<n; i++){
-      sampleonce(state);
+      sampleonce(a_obs);
     }
 }
 
@@ -160,7 +160,7 @@ void updateADist(State state){
     last_bias_posterior=new Histogram(last_bias_prior.left(),last_bias_prior.right(),0.02);
     bias_posterior=new Histogram(-5,5,0.02);
     
-    sample(state, 10000);
+    sample(state.a_obs, 10000);
     
     last_bias_prior = new HistogramDensityFunction(bias_posterior);
     
