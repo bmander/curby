@@ -16,10 +16,10 @@ class State{
   float a_maxprob;
   
   State(float a, float t){
-    s=0;
-    v=0;
-    a=a;
-    t=t;
+    this.s=0;
+    this.v=0;
+    this.a=a;
+    this.t=t;
     
     a_dist=null;
   }
@@ -63,6 +63,7 @@ ProbabilityDensityFunction noise_prior;
 Histogram accel_posterior;
 Histogram last_bias_posterior;
 Histogram bias_posterior;
+State laststate;
 State state;
 
 void keyPressed(){
@@ -167,22 +168,22 @@ void draw(){
       float a = reading.ax*MPERSSQUARED_PER_BIT;
       float t = reading.t/1000.0;
       
-      // if this is the first time-slice, apply initial conditions
-      if(state==null){
-        state = new State(a,t);
+      laststate=state;
       
-      // else apply the transformation model
-      } else {
-        dt = t - state.t;
+      state = new State(a,t);
+      if(laststate==null){
+        continue;
+      }
         
-        if(state.a_dist!=null){
-          state.v = state.v + state.a_maxprob*dt;
-          state.s = state.s + state.v*dt;
+      state.a_dist=laststate.a_dist;
+        
+      dt = t - laststate.t;
+        
+      if(laststate.a_dist!=null){
+        state.v = laststate.v + laststate.a_maxprob*dt;
+        state.s = laststate.s + laststate.v*dt;
           
-          accel_prior=new DoubleExponentialDensityFunction( -state.v*1.0, 4 );
-        }
-        state.a = a;
-        state.t = t;
+        accel_prior=new DoubleExponentialDensityFunction( -state.v*1.0, 4 );
       }
       
     } catch (IMUParseException e){
@@ -194,6 +195,7 @@ void draw(){
   
   // update bayes net
   if(state!=null){
+
     if(last_bias_posterior!=null){
       last_bias_prior = new HistogramDensityFunction(bias_posterior);
     }
@@ -202,6 +204,8 @@ void draw(){
     last_bias_posterior=new Histogram(last_bias_prior.left(),last_bias_prior.right(),0.02);
     bias_posterior=new Histogram(-5,5,0.02);
     sample(10000);
+    
+
     
     state.setADist( new HistogramDensityFunction( accel_posterior ) );
   }
