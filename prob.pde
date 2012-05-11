@@ -133,10 +133,11 @@ class HistogramDensityFunction extends ProbabilityDensityFunction{
   float leftval; //leftmost point with non-zero prob density
   float rightval; //rightmost point with non-zero prob density
   
+  float argmax_cache; //place to cache argmax; it never changes after this object is created
+  
   HistogramDensityFunction(Histogram histogram){
     this.histogram=histogram;
     
-    // if 
     for(int i=0; i<this.histogram.buckets.length; i++){
       this.leftval = this.histogram.left+i*this.histogram.pitch;
       if(this.histogram.buckets[i]>0){
@@ -149,6 +150,8 @@ class HistogramDensityFunction extends ProbabilityDensityFunction{
         break;
       }
     }
+    
+    this.argmax_cache = this.find_argmax();
   }
   
   float probDensity(float x){
@@ -202,7 +205,7 @@ class HistogramDensityFunction extends ProbabilityDensityFunction{
     return this.rightval;
   }
   
-  float argmax(){
+  float find_argmax(){
     int winner=0;
     float winneramount=-1;
     for(int i=0; i<this.histogram.buckets.length; i++){
@@ -212,6 +215,10 @@ class HistogramDensityFunction extends ProbabilityDensityFunction{
       }
     }
     return this.histogram.left+this.histogram.pitch*(winner+0.5);
+  }
+  
+  float argmax(){
+    return this.argmax_cache;
   }
 }
 

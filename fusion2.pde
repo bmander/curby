@@ -14,24 +14,22 @@ class State{
   
   float s;
   float v;
-  float a_obs;
+  
   float t;
+  ProbabilityDensityFunction a;
+  float a_obs;
   
-  HistogramDensityFunction a_dist;
-  float a_maxprob;
-  
-  State(float a, float t){
+  State(float a_obs, float t){
     this.s=0;
     this.v=0;
-    this.a_obs=a;
+    this.a_obs=a_obs;
     this.t=t;
     
-    a_dist=null;
+    this.a=null;
   }
   
-  void setADist(HistogramDensityFunction a_dist){
-    this.a_dist=a_dist;
-    this.a_maxprob = a_dist.argmax();
+  void setA(ProbabilityDensityFunction a){
+    this.a=a;
   }
   
   void draw(float zoom){
@@ -47,10 +45,10 @@ class State{
     line(zoom*v+width/2,height/3,zoom*v+width/2,2*height/3);
     line(zoom*5*s+width/2,2*height/3,zoom*5*s+width/2,height);
     
-    if(this.a_dist!=null){
+    if(this.a!=null){
       strokeWeight(2);
       stroke(0,0,255);
-      line(zoom*a_maxprob+width/2,0,zoom*a_maxprob+width/2,height/3);
+      line(zoom*a.argmax()+width/2,0,zoom*a.argmax()+width/2,height/3);
     }
   }
 }
@@ -165,7 +163,7 @@ void updateADist(State state){
     
     last_bias_prior = new HistogramDensityFunction(bias_posterior);
     
-    state.setADist( new HistogramDensityFunction( accel_posterior ) );
+    state.setA( new HistogramDensityFunction( accel_posterior ) );
 }
 
 void draw(){
@@ -204,8 +202,8 @@ void draw(){
         
       dt = state.t - laststate.t;
         
-      if(laststate.a_dist!=null){
-        state.v = laststate.v + laststate.a_maxprob*dt;
+      if(laststate.a!=null){
+        state.v = laststate.v + laststate.a.argmax()*dt;
         state.s = laststate.s + laststate.v*dt;
           
         accel_prior=new DoubleExponentialDensityFunction( -state.v*0.75, 4 );
