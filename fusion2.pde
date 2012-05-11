@@ -14,7 +14,7 @@ class State{
   
   float s;
   float v;
-  ProbabilityDensityFunction a;
+  float a_obs;
   float t;
   
   HistogramDensityFunction a_dist;
@@ -23,7 +23,7 @@ class State{
   State(float a, float t){
     this.s=0;
     this.v=0;
-    this.a=new DegenerateDensityFunction(a);
+    this.a_obs=a;
     this.t=t;
     
     a_dist=null;
@@ -42,8 +42,8 @@ class State{
     line(width/2+zoom,0,width/2+zoom,height);
     
     stroke(0);
-    a.draw( 0, 0, width/2, 2*height/3, height/3, zoom );
-    //line(zoom*a+width/2,0,zoom*a+width/2,height/3);
+    //a.draw( 0, 0, width/2, 2*height/3, height/3, zoom );
+    line(zoom*a_obs+width/2,0,zoom*a_obs+width/2,height/3);
     line(zoom*v+width/2,height/3,zoom*v+width/2,2*height/3);
     line(zoom*5*s+width/2,2*height/3,zoom*5*s+width/2,height);
     
@@ -135,7 +135,7 @@ void sampleonce(State state){
       float bias_movement_proposal = random(bias_movement_prior.left(), bias_movement_prior.right());
       float noise_proposal = random(noise_prior.left(),noise_prior.right());
       float bias_proposal = last_bias_proposal+bias_movement_proposal;
-      float accel_proposal = state.a.argmax()-(bias_proposal+noise_proposal);
+      float accel_proposal = state.a_obs-(bias_proposal+noise_proposal);
     
       //likelihood of sample
       float likelihood = 1.0;
@@ -254,7 +254,7 @@ void draw(){
     if(state!=null){
       background(255);
       text("dt="+fround(dt,3)+" s", width-200,height-20 );
-      text("a="+fround(state.a.argmax(),3)+" ms^-2", 5, 20 );
+      text("a="+fround(state.a_obs,3)+" ms^-2", 5, 20 );
       text("v="+fround(state.v,3)+" ms^-1", 5, height/3+20);
       text("s="+fround(state.s,3)+" m", 5, 2*height/3+20);
       fill(28);
