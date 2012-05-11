@@ -39,7 +39,7 @@ class State{
     stroke(0);
     line(zoom*a+width/2,0,zoom*a+width/2,height/3);
     line(zoom*v+width/2,height/3,zoom*v+width/2,2*height/3);
-    line(zoom*s+width/2,2*height/3,zoom*s+width/2,height);
+    line(zoom*5*s+width/2,2*height/3,zoom*5*s+width/2,height);
     
     if(this.a_dist!=null){
       strokeWeight(2);
@@ -202,7 +202,7 @@ void draw(){
         state.v = laststate.v + laststate.a_maxprob*dt;
         state.s = laststate.s + laststate.v*dt;
           
-        accel_prior=new DoubleExponentialDensityFunction( -state.v*1.0, 4 );
+        accel_prior=new DoubleExponentialDensityFunction( -state.v*0.75, 4 );
       }
       
     } catch (IMUParseException e){
