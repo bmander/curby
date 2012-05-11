@@ -1,5 +1,4 @@
 class State{
-  
   ProbabilityDensityFunction s;
   ProbabilityDensityFunction v;
   ProbabilityDensityFunction a;

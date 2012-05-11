@@ -119,6 +119,10 @@ ProbabilityDensityFunction compute_accel(float a_obs){
     return new HistogramDensityFunction( accel_posterior );
 }
 
+ProbabilityDensityFunction advance( ProbabilityDensityFunction x0, ProbabilityDensityFunction dx, float dt ){
+  return new DegenerateDensityFunction(x0.argmax() + dx.argmax()*dt);
+}
+
 void draw(){
   float dt=0;
  
@@ -153,8 +157,10 @@ void draw(){
       dt = state.t - laststate.t;
         
       if(laststate.a!=null){
-        state.v = new DegenerateDensityFunction(laststate.v.argmax() + laststate.a.argmax()*dt);
-        state.s = new DegenerateDensityFunction(laststate.s.argmax() + laststate.v.argmax()*dt);
+        state.v = advance( laststate.v, laststate.a, dt );
+        state.s = advance( laststate.s, laststate.v, dt );
+        //state.v = new DegenerateDensityFunction(laststate.v.argmax() + laststate.a.argmax()*dt);
+        //state.s = new DegenerateDensityFunction(laststate.s.argmax() + laststate.v.argmax()*dt);
           
         accel_prior=new DoubleExponentialDensityFunction( -state.v.argmax()*0.75, 4 );
       }
