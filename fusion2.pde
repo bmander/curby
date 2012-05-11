@@ -197,9 +197,6 @@ void draw(){
       }
       
       state.a = compute_accel(a_obs);
-      
-      // grab acceleration distribution from the last reading TODO: THIS IS DUMB
-      //state.a_dist=laststate.a_dist;
         
       dt = state.t - laststate.t;
         
