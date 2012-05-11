@@ -124,7 +124,7 @@ void setup(){
   noise_prior = new GaussianDensityFunction(0,0.038);
 }
 
-void sampleonce(){
+void sampleonce(State state){
       float last_bias_proposal = random(last_bias_prior.left(),last_bias_prior.right());
       float bias_movement_proposal = random(bias_movement_prior.left(), bias_movement_prior.right());
       float noise_proposal = random(noise_prior.left(),noise_prior.right());
@@ -143,11 +143,23 @@ void sampleonce(){
       bias_posterior.add( bias_proposal, likelihood );
 }
 
-void sample(int n){
+void sample(State state, int n){
   
     for(int i=0; i<n; i++){
-      sampleonce();
+      sampleonce(state);
     }
+}
+
+void updateADist(State state){
+    accel_posterior=new Histogram(-5,5,0.02);
+    last_bias_posterior=new Histogram(last_bias_prior.left(),last_bias_prior.right(),0.02);
+    bias_posterior=new Histogram(-5,5,0.02);
+    
+    sample(state, 10000);
+    
+    last_bias_prior = new HistogramDensityFunction(bias_posterior);
+    
+    state.setADist( new HistogramDensityFunction( accel_posterior ) );
 }
 
 void draw(){
@@ -179,8 +191,10 @@ void draw(){
         continue;
       }
       
+      updateADist(state);
+      
       // grab acceleration distribution from the last reading TODO: THIS IS DUMB
-      state.a_dist=laststate.a_dist;
+      //state.a_dist=laststate.a_dist;
         
       dt = state.t - laststate.t;
         
@@ -200,16 +214,7 @@ void draw(){
   
   // update bayes net
   if(state!=null){
-
-    accel_posterior=new Histogram(-5,5,0.02);
-    last_bias_posterior=new Histogram(last_bias_prior.left(),last_bias_prior.right(),0.02);
-    bias_posterior=new Histogram(-5,5,0.02);
-    
-    sample(10000);
-    
-    last_bias_prior = new HistogramDensityFunction(bias_posterior);
-    
-    state.setADist( new HistogramDensityFunction( accel_posterior ) );
+    //updateADist(state);
   }
  
  
