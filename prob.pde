@@ -22,10 +22,10 @@ abstract class ProbabilityDensityFunction{
   abstract float right();
 }
 
-class CertaintyDensityFunction extends ProbabilityDensityFunction{
+class DegenerateDensityFunction extends ProbabilityDensityFunction{
   float c;
   
-  CertaintyDensityFunction(float c){
+  DegenerateDensityFunction(float c){
     this.c=c;
   }
   
