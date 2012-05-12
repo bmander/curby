@@ -78,7 +78,7 @@ void setup(){
   accel_prior=new DoubleExponentialDensityFunction( 0, 4 );
   last_bias_prior=new UniformDensityFunction(-0.5,0.5);
   bias_movement_prior = new GaussianDensityFunction(0,0.0005);
-  noise_prior = new GaussianDensityFunction(0,0.038);
+  noise_prior = new GaussianDensityFunction(0,1.2*0.038);
 }
 
 void sample(float a_obs, int n){
@@ -119,14 +119,27 @@ ProbabilityDensityFunction compute_accel(float a_obs){
     return new HistogramDensityFunction( accel_posterior );
 }
 
-ProbabilityDensityFunction advance( ProbabilityDensityFunction x0, ProbabilityDensityFunction dx, float dt, int n ){
-  return new DegenerateDensityFunction(x0.argmax() + dx.argmax()*dt);
-  //return new GaussianDensityFunction(x0.argmax() + dx.argmax()*dt, 0.05 );
-  /*float leftsupport = x0.left()+dx.left()*dt;
-  float rightsupport = x0.right()+dx.right()*dt;
-  Histogram x1 = new Histogram(leftsupport,rightsupport,0.02);
+ProbabilityDensityFunction advance_by_sampling( ProbabilityDensityFunction x0, ProbabilityDensityFunction dx, float dt, int n ){
   
-  println( 
+  float leftsupport = x0.left()+dx.left()*dt;
+  float rightsupport = x0.right()+dx.right()*dt;
+  
+  if(leftsupport>rightsupport){
+    throw new RuntimeException("left support can't be righter than right support x0:("+x0.left()+"-"+x0.right()+") dx:("+dx.left()+"-"+dx.right()+") support:"+leftsupport+" "+rightsupport);
+  }
+  
+  println( "support: "+leftsupport+"-"+rightsupport );
+  
+  float resolution = (rightsupport-leftsupport)/100;
+  println( "resolution: "+resolution );
+  
+  if(resolution<0.02){
+    resolution=0.02;
+  }
+  
+  Histogram x1 = new Histogram(leftsupport,rightsupport,resolution);
+  
+
   
   //cache these in case calculating them is difficult; we'll need them lots
   float x0_left = x0.left();
@@ -138,21 +151,68 @@ ProbabilityDensityFunction advance( ProbabilityDensityFunction x0, ProbabilityDe
   float dx_proposal;
   float x1_proposal;
   float likelihood;
+  
+  //println( "x0: "+x0_left+"-"+x0_right );
+  //println( "dx: "+dx_left+"-"+dx_right );
+  
+  
   for(int i=0; i<n; i++){
     x0_proposal = random(x0_left,x0_right);
     dx_proposal = random(dx_left,dx_right);
     
+    //println( "x0_proposal: "+x0_proposal );
+    //println( "dx_proposal: "+dx_proposal );
+    
     x1_proposal = x0_proposal+dx_proposal*dt;
-    likelihood = x0.probDensity(x0_proposal)*dx.probDensity(dx_proposal);
-    x1.add( x1_proposal, likelihood );
+    
+    //println( "x1_proposal: "+x1_proposal );
+    
+    likelihood = 1;
+    if(x0_left!=x0_right){
+      likelihood *= x0.probDensity(x0_proposal)/(1/(x0_right-x0_left));
+    }
+    if(dx_left!=dx_right){
+      likelihood *= dx.probDensity(dx_proposal)/(1/(dx_right-dx_left));
+    }
+    
+    //println( "likelihood "+likelihood );
+    
+    try{
+      x1.add( x1_proposal, likelihood );
+    }catch(ArrayIndexOutOfBoundsException ex){
+      println( "support "+leftsupport+"-"+rightsupport );
+      println( x1_proposal );
+      println( resolution );
+      println( (x1_proposal-leftsupport)/resolution );
+      throw ex;
+    }
   }
   
-  return new HistogramDensityFunction(x1);*/
+  println( "---" );
+  
+  return new HistogramDensityFunction( x1 );
+  
+  //return new DegenerateDensityFunction(x0.argmax() + dx.argmax()*dt);
+
+}
+
+ProbabilityDensityFunction advance_degenerate( ProbabilityDensityFunction x0, ProbabilityDensityFunction dx, float dt ){
+  
+  return new DegenerateDensityFunction(x0.argmax() + dx.argmax()*dt);
+
+}
+
+ProbabilityDensityFunction advance_gaussian( ProbabilityDensityFunction x0, ProbabilityDensityFunction dx, float dt ){
+  
+  return new GaussianDensityFunction(x0.argmax() + dx.argmax()*dt, sqrt(sq(x0.stddev())+sq(dx.stddev()*dt)));
+
 }
 
 void draw(){
   float dt=0;
  
+  //running=false; //TODO temp debugging thing
+  //runonce=true; //TODO temp debugging thing
   // update the state until the serial stream runs dry
   while(running || runonce){
     
@@ -184,8 +244,10 @@ void draw(){
       dt = state.t - laststate.t;
         
       if(laststate.a!=null){
-        state.v = advance( laststate.v, laststate.a, dt, 1000 );
-        state.s = advance( laststate.s, laststate.v, dt, 1000 );
+        //println("advance v");
+        state.v = advance_gaussian( laststate.v, laststate.a, dt );
+        //println("advance s");
+        state.s = advance_gaussian( laststate.s, laststate.v, dt );
         //state.v = new DegenerateDensityFunction(laststate.v.argmax() + laststate.a.argmax()*dt);
         //state.s = new DegenerateDensityFunction(laststate.s.argmax() + laststate.v.argmax()*dt);
           
@@ -237,13 +299,13 @@ void draw(){
       fill(28);
       text("dt="+fround(dt,3)+" s", width-200,height-20 );
       text("a_obs="+fround(state.a_obs,3)+" ms^-2", 5, 20 );
-      text("v="+fround(state.v.argmax(),3)+" ms^-1", 5, height/3+20);
-      text("s="+fround(state.s.argmax(),3)+" m", 5, 2*height/3+20);
+      text("argmax(v)="+fround(state.v.argmax(),3)+" ms^-1", 5, height/3+20);
+      text("argmax(s)="+fround(state.s.argmax(),3)+" m", 5, 2*height/3+20);
       fill(0,0,255);
       text("argmax(a)="+fround(state.a.argmax(),2)+" ms^-2", 5, 20+20);
       state.draw(200.0);
     }
   }
   
-  //delay(1000);
+  //delay(100);
 }

@@ -22,6 +22,8 @@ abstract class ProbabilityDensityFunction{
   abstract float right();
   
   abstract float argmax();
+  
+  abstract float stddev();
 }
 
 class DegenerateDensityFunction extends ProbabilityDensityFunction{
@@ -53,6 +55,10 @@ class DegenerateDensityFunction extends ProbabilityDensityFunction{
   
   float right(){
     return this.c;
+  }
+  
+  float stddev(){
+    return 0;
   }
   
   void draw(float left, float right, float shiftx, float shifty, float sc, float zoom){
@@ -89,6 +95,10 @@ class DoubleExponentialDensityFunction extends ProbabilityDensityFunction{
     throw new UnsupportedOperationException();
   }
   
+  float stddev(){
+    throw new UnsupportedOperationException();
+  }
+  
   
 }
 
@@ -122,6 +132,10 @@ class UniformDensityFunction extends ProbabilityDensityFunction{
   }
   
   float argmax(){
+    throw new UnsupportedOperationException();
+  }
+  
+  float stddev(){
     throw new UnsupportedOperationException();
   }
 }
@@ -220,6 +234,33 @@ class HistogramDensityFunction extends ProbabilityDensityFunction{
   float argmax(){
     return this.argmax_cache;
   }
+  
+  float expectedvalue(){
+    float ret=0;
+    for(int i=0; i<this.histogram.buckets.length; i++){
+      float bucketmass = this.histogram.buckets[i];
+      float bucketprob = bucketmass/this.histogram.mass;
+      float bucketval = this.histogram.left+i*this.histogram.pitch;
+      ret += bucketval*bucketprob;
+    }
+    return ret;
+  }
+  
+  float variance(){
+    float mu = expectedvalue();
+    float ret=0;
+    for(int i=0; i<this.histogram.buckets.length; i++){
+      float bucketmass = this.histogram.buckets[i];
+      float bucketprob = bucketmass/this.histogram.mass;
+      float bucketval = this.histogram.left+i*this.histogram.pitch;
+      ret += bucketprob*sq(bucketval-mu);
+    }
+    return ret;
+  }
+  
+  float stddev(){
+    return sqrt(variance());
+  }
 }
 
 class GaussianDensityFunction extends ProbabilityDensityFunction{
@@ -257,6 +298,10 @@ class GaussianDensityFunction extends ProbabilityDensityFunction{
   
   float argmax(){
     return mean;
+  }
+  
+  float stddev(){
+    return stddev;
   }
 }
 
