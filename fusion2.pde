@@ -73,7 +73,7 @@ void setup(){
   state=null;
   running=true;
   runonce=false;
-  mode=MODE_PROB;
+  mode=MODE_AVS;
   
   accel_prior=new DoubleExponentialDensityFunction( 0, 4 );
   last_bias_prior=new UniformDensityFunction(-0.5,0.5);
@@ -119,8 +119,35 @@ ProbabilityDensityFunction compute_accel(float a_obs){
     return new HistogramDensityFunction( accel_posterior );
 }
 
-ProbabilityDensityFunction advance( ProbabilityDensityFunction x0, ProbabilityDensityFunction dx, float dt ){
+ProbabilityDensityFunction advance( ProbabilityDensityFunction x0, ProbabilityDensityFunction dx, float dt, int n ){
   return new DegenerateDensityFunction(x0.argmax() + dx.argmax()*dt);
+  //return new GaussianDensityFunction(x0.argmax() + dx.argmax()*dt, 0.05 );
+  /*float leftsupport = x0.left()+dx.left()*dt;
+  float rightsupport = x0.right()+dx.right()*dt;
+  Histogram x1 = new Histogram(leftsupport,rightsupport,0.02);
+  
+  println( 
+  
+  //cache these in case calculating them is difficult; we'll need them lots
+  float x0_left = x0.left();
+  float x0_right = x0.right();
+  float dx_left = dx.left();
+  float dx_right = dx.right();
+  
+  float x0_proposal;
+  float dx_proposal;
+  float x1_proposal;
+  float likelihood;
+  for(int i=0; i<n; i++){
+    x0_proposal = random(x0_left,x0_right);
+    dx_proposal = random(dx_left,dx_right);
+    
+    x1_proposal = x0_proposal+dx_proposal*dt;
+    likelihood = x0.probDensity(x0_proposal)*dx.probDensity(dx_proposal);
+    x1.add( x1_proposal, likelihood );
+  }
+  
+  return new HistogramDensityFunction(x1);*/
 }
 
 void draw(){
@@ -157,8 +184,8 @@ void draw(){
       dt = state.t - laststate.t;
         
       if(laststate.a!=null){
-        state.v = advance( laststate.v, laststate.a, dt );
-        state.s = advance( laststate.s, laststate.v, dt );
+        state.v = advance( laststate.v, laststate.a, dt, 1000 );
+        state.s = advance( laststate.s, laststate.v, dt, 1000 );
         //state.v = new DegenerateDensityFunction(laststate.v.argmax() + laststate.a.argmax()*dt);
         //state.s = new DegenerateDensityFunction(laststate.s.argmax() + laststate.v.argmax()*dt);
           

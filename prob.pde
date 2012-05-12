@@ -256,7 +256,7 @@ class GaussianDensityFunction extends ProbabilityDensityFunction{
   }
   
   float argmax(){
-    throw new UnsupportedOperationException();
+    return mean;
   }
 }
 

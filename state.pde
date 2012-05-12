@@ -27,16 +27,14 @@ class State{
     line(width/2+zoom,0,width/2+zoom,height);
     
     stroke(0);
-    //a.draw( 0, 0, width/2, 2*height/3, height/3, zoom );
     line(zoom*a_obs+width/2,0,zoom*a_obs+width/2,height/3);
-    line(zoom*v.argmax()+width/2,height/3,zoom*v.argmax()+width/2,2*height/3);
-    line(zoom*5*s.argmax()+width/2,2*height/3,zoom*5*s.argmax()+width/2,height);
+    v.draw(-2.0, 2.0, width/2, 1*height/3, 10, 200.0);
+    s.draw(-2.0, 2.0, width/2, 0*height/3, 10, 200.0);
     
     if(this.a!=null){
       strokeWeight(2);
       stroke(0,0,255);
       a.draw(-2.0, 2.0, width/2, 2*height/3, 10, 200.0);
-      //line(zoom*a.argmax()+width/2,0,zoom*a.argmax()+width/2,height/3);
     }
   }
 }
