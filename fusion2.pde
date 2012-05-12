@@ -30,7 +30,6 @@ class Sampleset {
   }
 }
 
-ProbabilityDensityFunction accel_prior;
 ProbabilityDensityFunction bias_movement_prior;
 ProbabilityDensityFunction noise_prior;
 
@@ -74,7 +73,6 @@ void setup(){
   runonce=false;
   mode=MODE_AVS;
   
-  accel_prior=new DoubleExponentialDensityFunction( 0, WANDERLUST );
   bias_movement_prior = new GaussianDensityFunction(0,BIAS_WANDER);
   noise_prior = new GaussianDensityFunction(0,ACCEL_NOISE_FUDGE*ACCEL_NOISE_RMS);
 }
@@ -94,7 +92,7 @@ void sample(State laststate, State state, int n){
     
       //likelihood of sample
       float likelihood = 1.0;
-      likelihood *= accel_prior.probDensity(accel_proposal);
+      likelihood *= state.a.probDensity(accel_proposal);
       likelihood *= laststate.bias.probDensity(last_bias_proposal)/last_bias_proposal_dist.probDensity(last_bias_proposal);
       //likelihood *= bias_movement_prior.probDensity(bias_movement_proposal)/bias_movement_proposal_dist.probDensity(bias_movement_proposal);
       //likelihood *= noise_prior.probDensity(noise_proposal)/noise_proposal_dist.probDensity(noise_proposal);
@@ -208,26 +206,24 @@ void draw(){
       laststate=state;
       
       // pop a new state into the present, with measurements from the IMU
-      state = new State(a_obs,t);
-      
       // if the past didn't exist, then this is the first measurement; no further work to do this iteration
       if(laststate==null){
+        state = new State(a_obs,t,0);
         state.s=new DegenerateDensityFunction(0);
         state.v=new DegenerateDensityFunction(0);
         state.a=new DegenerateDensityFunction(0);
         continue;
+      } else {
+        state = new State(a_obs,t,laststate.v.argmax());
       }
       
       update_state(laststate, state);
         
       dt = state.t - laststate.t;
         
-      if(laststate.a!=null){
-        state.v = advance_gaussian( laststate.v, laststate.a, dt );
-        state.s = advance_gaussian( laststate.s, laststate.v, dt );
+      state.v = advance_gaussian( laststate.v, laststate.a, dt );
+      state.s = advance_gaussian( laststate.s, laststate.v, dt );
           
-        accel_prior=new DoubleExponentialDensityFunction( -state.v.argmax()*TIMIDNESS, 4 );
-      }
       
     } catch (IMUParseException e){
     }
@@ -242,7 +238,6 @@ void draw(){
     
     //draw priors
     stroke(255,0,0);
-    accel_prior.draw( -2.0, 2.0, width/2, 2*height/3, 75, 200.0);
     laststate.bias.draw(-2.0,2.0,width/2, 1*height/3, 5, 200.0);
     
     //draw posteriors
@@ -254,7 +249,6 @@ void draw(){
     
     //draw text
     fill(255,0,0);
-    text("'a' prior distribution",5,20);
     text("'last_bias' prior distribution",5,20+height/3);
     fill(0,0,0);
     text("'a' sample histogram",5,20+20);

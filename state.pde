@@ -8,13 +8,13 @@ class State{
   
   float a_obs;
   
-  State(float a_obs, float t){
+  State(float a_obs, float t, float v){
     this.bias = new UniformDensityFunction(-0.5,0.5);
     
     this.a_obs=a_obs;
     this.t=t;
     
-    this.a=null;
+    this.a=new DoubleExponentialDensityFunction( -v*TIMIDNESS, WANDERLUST );;
   }
   
   void setA(ProbabilityDensityFunction a){
