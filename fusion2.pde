@@ -43,6 +43,16 @@ class Graph{
     noise_prior = new GaussianDensityFunction(0,ACCEL_NOISE_FUDGE*ACCEL_NOISE_RMS);
   }
   
+  void update(){
+    sampleset = new Sampleset(laststate);
+    
+    sample(laststate, state, 5000);
+    
+    state.bias = new HistogramDensityFunction( sampleset.bias_samples );
+    
+    state.a = new HistogramDensityFunction( sampleset.accel_samples );
+  }
+  
 }
 
 Graph graph;
@@ -112,15 +122,7 @@ void sample(State laststate, State state, int n){
     }
 }
 
-void update_state(State laststate, State state){
-    sampleset = new Sampleset(laststate);
-    
-    sample(laststate, state, 5000);
-    
-    state.bias = new HistogramDensityFunction( sampleset.bias_samples );
-    
-    state.a = new HistogramDensityFunction( sampleset.accel_samples );
-}
+
 
 ProbabilityDensityFunction advance_by_sampling( ProbabilityDensityFunction x0, ProbabilityDensityFunction dx, float dt, int n ){
   
@@ -227,7 +229,7 @@ void draw(){
         graph.state = new State(a_obs,t,graph.laststate.v.argmax());
       }
       
-      update_state(graph.laststate, graph.state);
+      graph.update();
         
       dt = graph.state.t - graph.laststate.t;
         
