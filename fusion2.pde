@@ -84,8 +84,8 @@ void setup(){
 void sample(float a_obs, int n){
   
     ProbabilityDensityFunction last_bias_proposal_dist = new UniformDensityFunction(last_bias_prior.left(),last_bias_prior.right());
-    ProbabilityDensityFunction bias_movement_proposal_dist = new UniformDensityFunction(bias_movement_prior.left(),bias_movement_prior.right());
-    ProbabilityDensityFunction noise_proposal_dist = new UniformDensityFunction(noise_prior.left(),noise_prior.right());
+    ProbabilityDensityFunction bias_movement_proposal_dist = bias_movement_prior;//new UniformDensityFunction(bias_movement_prior.left(),bias_movement_prior.right());
+    ProbabilityDensityFunction noise_proposal_dist = noise_prior;//new UniformDensityFunction(noise_prior.left(),noise_prior.right());
   
     for(int i=0; i<n; i++){
       float last_bias_proposal = last_bias_proposal_dist.sample();
@@ -98,8 +98,8 @@ void sample(float a_obs, int n){
       float likelihood = 1.0;
       likelihood *= accel_prior.probDensity(accel_proposal);
       likelihood *= last_bias_prior.probDensity(last_bias_proposal)/last_bias_proposal_dist.probDensity(last_bias_proposal);
-      likelihood *= bias_movement_prior.probDensity(bias_movement_proposal)/bias_movement_proposal_dist.probDensity(bias_movement_proposal);
-      likelihood *= noise_prior.probDensity(noise_proposal)/noise_proposal_dist.probDensity(noise_proposal);
+      //likelihood *= bias_movement_prior.probDensity(bias_movement_proposal)/bias_movement_proposal_dist.probDensity(bias_movement_proposal);
+      //likelihood *= noise_prior.probDensity(noise_proposal)/noise_proposal_dist.probDensity(noise_proposal);
       
       accel_posterior.add( accel_proposal, likelihood );
       last_bias_posterior.add( last_bias_proposal, likelihood );
@@ -108,11 +108,11 @@ void sample(float a_obs, int n){
 }
 
 ProbabilityDensityFunction compute_accel(float a_obs){
-    accel_posterior=new Histogram(-5,5,0.02);
-    last_bias_posterior=new Histogram(last_bias_prior.left(),last_bias_prior.right(),0.02);
-    bias_posterior=new Histogram(-5,5,0.02);
+    accel_posterior=new Histogram(-5,5,0.01);
+    last_bias_posterior=new Histogram(last_bias_prior.left(),last_bias_prior.right(),0.01);
+    bias_posterior=new Histogram(-5,5,0.01);
     
-    sample(state.a_obs, 10000);
+    sample(state.a_obs, 5000);
     
     last_bias_prior = new HistogramDensityFunction(bias_posterior);
     
