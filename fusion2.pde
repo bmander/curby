@@ -6,6 +6,13 @@ float MPERSSQUARED_PER_BIT = (1/256.0)*9.807; //(g/LSB)*(m*s^-2/g)=m*s^-2/LSB
 int MODE_AVS = 0;
 int MODE_PROB = 1;
 
+//free paramters
+float TIMIDNESS=5.0; //tendancy to decelerate given a velocity
+float WANDERLUST=4.0; //tau of exponential that describes the acceleration prior
+float BIAS_WANDER=0.0001; //stddev of movement of bias between successive time slices
+float ACCEL_NOISE_RMS=0.038; //data sheet value for accelerometer
+float ACCEL_NOISE_FUDGE=1.2; //it seems slightly higher in practice
+
 IMU imu;
 PFont font;
 boolean running;
@@ -35,27 +42,12 @@ void keyPressed(){
       running=true;
     }
   } else if(key=='n'){  //next
-    last_bias_prior = new HistogramDensityFunction(last_bias_posterior);
-  
-    accel_posterior=new Histogram(-5,5,0.02);
-    last_bias_posterior=new Histogram(-5,5,0.02);
-    
-
-  
     runonce=true;
   } else if(key=='m'){  //mode
     if(mode==MODE_AVS){
       mode=MODE_PROB;
     } else{
       mode=MODE_AVS;
-    }
-  } else if(key=='s'){ //sample
-    if(!sampling){
-      accel_posterior=new Histogram(-5,5,0.02);
-      last_bias_posterior=new Histogram(-5,5,0.02);
-      sampling=true;
-    } else{
-      sampling=false;
     }
   } 
 }
@@ -66,8 +58,6 @@ void setup(){
   font= loadFont("ArialMT-14.vlw");
   textFont(font);
   
-  //frameRate(1);
-  
   imu = new IMU(this, serialPort);
   
   state=null;
@@ -75,10 +65,10 @@ void setup(){
   runonce=false;
   mode=MODE_AVS;
   
-  accel_prior=new DoubleExponentialDensityFunction( 0, 4 );
+  accel_prior=new DoubleExponentialDensityFunction( 0, WANDERLUST );
   last_bias_prior=new UniformDensityFunction(-0.5,0.5);
-  bias_movement_prior = new GaussianDensityFunction(0,0.0005);
-  noise_prior = new GaussianDensityFunction(0,1.2*0.038);
+  bias_movement_prior = new GaussianDensityFunction(0,BIAS_WANDER);
+  noise_prior = new GaussianDensityFunction(0,ACCEL_NOISE_FUDGE*ACCEL_NOISE_RMS);
 }
 
 void sample(float a_obs, int n){
@@ -131,15 +121,12 @@ ProbabilityDensityFunction advance_by_sampling( ProbabilityDensityFunction x0, P
   println( "support: "+leftsupport+"-"+rightsupport );
   
   float resolution = (rightsupport-leftsupport)/100;
-  println( "resolution: "+resolution );
   
   if(resolution<0.02){
     resolution=0.02;
   }
   
   Histogram x1 = new Histogram(leftsupport,rightsupport,resolution);
-  
-
   
   //cache these in case calculating them is difficult; we'll need them lots
   float x0_left = x0.left();
@@ -152,21 +139,12 @@ ProbabilityDensityFunction advance_by_sampling( ProbabilityDensityFunction x0, P
   float x1_proposal;
   float likelihood;
   
-  //println( "x0: "+x0_left+"-"+x0_right );
-  //println( "dx: "+dx_left+"-"+dx_right );
-  
-  
   for(int i=0; i<n; i++){
     x0_proposal = random(x0_left,x0_right);
     dx_proposal = random(dx_left,dx_right);
     
-    //println( "x0_proposal: "+x0_proposal );
-    //println( "dx_proposal: "+dx_proposal );
-    
     x1_proposal = x0_proposal+dx_proposal*dt;
-    
-    //println( "x1_proposal: "+x1_proposal );
-    
+        
     likelihood = 1;
     if(x0_left!=x0_right){
       likelihood *= x0.probDensity(x0_proposal)/(1/(x0_right-x0_left));
@@ -174,9 +152,7 @@ ProbabilityDensityFunction advance_by_sampling( ProbabilityDensityFunction x0, P
     if(dx_left!=dx_right){
       likelihood *= dx.probDensity(dx_proposal)/(1/(dx_right-dx_left));
     }
-    
-    //println( "likelihood "+likelihood );
-    
+        
     try{
       x1.add( x1_proposal, likelihood );
     }catch(ArrayIndexOutOfBoundsException ex){
@@ -188,12 +164,9 @@ ProbabilityDensityFunction advance_by_sampling( ProbabilityDensityFunction x0, P
     }
   }
   
-  println( "---" );
   
   return new HistogramDensityFunction( x1 );
   
-  //return new DegenerateDensityFunction(x0.argmax() + dx.argmax()*dt);
-
 }
 
 ProbabilityDensityFunction advance_degenerate( ProbabilityDensityFunction x0, ProbabilityDensityFunction dx, float dt ){
@@ -211,8 +184,6 @@ ProbabilityDensityFunction advance_gaussian( ProbabilityDensityFunction x0, Prob
 void draw(){
   float dt=0;
  
-  //running=false; //TODO temp debugging thing
-  //runonce=true; //TODO temp debugging thing
   // update the state until the serial stream runs dry
   while(running || runonce){
     
@@ -244,14 +215,10 @@ void draw(){
       dt = state.t - laststate.t;
         
       if(laststate.a!=null){
-        //println("advance v");
         state.v = advance_gaussian( laststate.v, laststate.a, dt );
-        //println("advance s");
         state.s = advance_gaussian( laststate.s, laststate.v, dt );
-        //state.v = new DegenerateDensityFunction(laststate.v.argmax() + laststate.a.argmax()*dt);
-        //state.s = new DegenerateDensityFunction(laststate.s.argmax() + laststate.v.argmax()*dt);
           
-        accel_prior=new DoubleExponentialDensityFunction( -state.v.argmax()*0.75, 4 );
+        accel_prior=new DoubleExponentialDensityFunction( -state.v.argmax()*TIMIDNESS, 4 );
       }
       
     } catch (IMUParseException e){
@@ -260,12 +227,6 @@ void draw(){
     runonce=false;
     
   }
-  
-  // update bayes net
-  if(state!=null){
-    //updateADist(state);
-  }
- 
  
   //draw
   if(mode==MODE_PROB){
