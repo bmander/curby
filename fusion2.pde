@@ -97,7 +97,7 @@ void sample(State state, int n){
     }
 }
 
-ProbabilityDensityFunction compute_accel(State state){
+void update_state(State state){
     accel_posterior=new Histogram(-5,5,0.01);
     last_bias_posterior=new Histogram(last_bias_prior.left(),last_bias_prior.right(),0.01);
     bias_posterior=new Histogram(-5,5,0.01);
@@ -106,7 +106,7 @@ ProbabilityDensityFunction compute_accel(State state){
     
     last_bias_prior = new HistogramDensityFunction(bias_posterior);
     
-    return new HistogramDensityFunction( accel_posterior );
+    state.a = new HistogramDensityFunction( accel_posterior );
 }
 
 ProbabilityDensityFunction advance_by_sampling( ProbabilityDensityFunction x0, ProbabilityDensityFunction dx, float dt, int n ){
@@ -210,7 +210,7 @@ void draw(){
         continue;
       }
       
-      state.a = compute_accel(state);
+      update_state(state);
         
       dt = state.t - laststate.t;
         
