@@ -83,9 +83,9 @@ void setup(){
 
 void sample(float a_obs, int n){
   
-    UniformDensityFunction last_bias_proposal_dist = new UniformDensityFunction(last_bias_prior.left(),last_bias_prior.right());
-    UniformDensityFunction bias_movement_proposal_dist = new UniformDensityFunction(bias_movement_prior.left(),bias_movement_prior.right());
-    UniformDensityFunction noise_proposal_dist = new UniformDensityFunction(noise_prior.left(),noise_prior.right());
+    ProbabilityDensityFunction last_bias_proposal_dist = new UniformDensityFunction(last_bias_prior.left(),last_bias_prior.right());
+    ProbabilityDensityFunction bias_movement_proposal_dist = new UniformDensityFunction(bias_movement_prior.left(),bias_movement_prior.right());
+    ProbabilityDensityFunction noise_proposal_dist = new UniformDensityFunction(noise_prior.left(),noise_prior.right());
   
     for(int i=0; i<n; i++){
       float last_bias_proposal = last_bias_proposal_dist.sample();
@@ -97,9 +97,9 @@ void sample(float a_obs, int n){
       //likelihood of sample
       float likelihood = 1.0;
       likelihood *= accel_prior.probDensity(accel_proposal);
-      likelihood *= last_bias_prior.probDensity(last_bias_proposal);
-      likelihood *= bias_movement_prior.probDensity(bias_movement_proposal);
-      likelihood *= noise_prior.probDensity(noise_proposal);
+      likelihood *= last_bias_prior.probDensity(last_bias_proposal)/last_bias_proposal_dist.probDensity(last_bias_proposal);
+      likelihood *= bias_movement_prior.probDensity(bias_movement_proposal)/bias_movement_proposal_dist.probDensity(bias_movement_proposal);
+      likelihood *= noise_prior.probDensity(noise_proposal)/noise_proposal_dist.probDensity(noise_proposal);
       
       accel_posterior.add( accel_proposal, likelihood );
       last_bias_posterior.add( last_bias_proposal, likelihood );
@@ -217,9 +217,9 @@ void draw(){
     //draw posteriors
     if(accel_posterior!=null&&last_bias_posterior!=null){
       fill(0);
-      accel_posterior.draw(width/2,2*height/3,200,0.000002);
-      last_bias_posterior.draw(width/2,height/3,200,0.000002);
-      bias_posterior.draw(width/2,0,200,0.000002);
+      accel_posterior.draw(width/2,2*height/3,200,0.0002);
+      last_bias_posterior.draw(width/2,height/3,200,0.0002);
+      bias_posterior.draw(width/2,0,200,0.0002);
     }
     
     //draw text
