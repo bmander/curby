@@ -73,7 +73,22 @@ class Graph{
     return sampleset;
   }
   
-  void update(){
+  void update(float a_obs, float t){
+    // move the current state to the past
+    laststate=state;
+      
+    // pop a new state into the present, with measurements from the IMU
+    // if the past didn't exist, then this is the first measurement; no further work to do this iteration
+    if(laststate==null){
+      state = new State(a_obs,t,0);
+      state.s=new DegenerateDensityFunction(0);
+      state.v=new DegenerateDensityFunction(0);
+      state.a=new DegenerateDensityFunction(0);
+      return;
+    } else {
+      state = new State(a_obs,t,laststate.v.argmax());
+    }
+    
     //sample the portion of the graph connected to state.a
     Sampleset smp = sample(5000);
     sampleset = smp; //export it to the global scope so we can draw it
@@ -222,22 +237,7 @@ void draw(){
       float a_obs = reading.ax*MPERSSQUARED_PER_BIT;
       float t = reading.t/1000.0;
       
-      // move the current state to the past
-      graph.laststate=graph.state;
-      
-      // pop a new state into the present, with measurements from the IMU
-      // if the past didn't exist, then this is the first measurement; no further work to do this iteration
-      if(graph.laststate==null){
-        graph.state = new State(a_obs,t,0);
-        graph.state.s=new DegenerateDensityFunction(0);
-        graph.state.v=new DegenerateDensityFunction(0);
-        graph.state.a=new DegenerateDensityFunction(0);
-        continue;
-      } else {
-        graph.state = new State(a_obs,t,graph.laststate.v.argmax());
-      }
-      
-      graph.update();
+      graph.update(a_obs, t);
       
     } catch (IMUParseException e){
     }
