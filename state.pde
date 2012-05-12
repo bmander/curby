@@ -1,4 +1,6 @@
 class State{
+  ProbabilityDensityFunction bias;
+  
   ProbabilityDensityFunction s;
   ProbabilityDensityFunction v;
   ProbabilityDensityFunction a;
@@ -7,6 +9,8 @@ class State{
   float a_obs;
   
   State(float a_obs, float t){
+    this.bias = new UniformDensityFunction(-0.5,0.5);
+    
     this.s=new DegenerateDensityFunction(0);
     this.v=new DegenerateDensityFunction(0);
     this.a_obs=a_obs;

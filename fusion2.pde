@@ -21,7 +21,6 @@ boolean sampling;
 int mode;
 
 ProbabilityDensityFunction accel_prior;
-ProbabilityDensityFunction last_bias_prior;
 ProbabilityDensityFunction bias_movement_prior;
 ProbabilityDensityFunction noise_prior;
 Histogram accel_posterior;
@@ -66,14 +65,14 @@ void setup(){
   mode=MODE_AVS;
   
   accel_prior=new DoubleExponentialDensityFunction( 0, WANDERLUST );
-  last_bias_prior=new UniformDensityFunction(-0.5,0.5);
+  //last_bias_prior=new UniformDensityFunction(-0.5,0.5);
   bias_movement_prior = new GaussianDensityFunction(0,BIAS_WANDER);
   noise_prior = new GaussianDensityFunction(0,ACCEL_NOISE_FUDGE*ACCEL_NOISE_RMS);
 }
 
-void sample(State state, int n){
+void sample(State laststate, State state, int n){
   
-    ProbabilityDensityFunction last_bias_proposal_dist = new UniformDensityFunction(last_bias_prior.left(),last_bias_prior.right());
+    ProbabilityDensityFunction last_bias_proposal_dist = new UniformDensityFunction(laststate.bias.left(),laststate.bias.right());
     ProbabilityDensityFunction bias_movement_proposal_dist = bias_movement_prior;//new UniformDensityFunction(bias_movement_prior.left(),bias_movement_prior.right());
     ProbabilityDensityFunction noise_proposal_dist = noise_prior;//new UniformDensityFunction(noise_prior.left(),noise_prior.right());
   
@@ -87,7 +86,7 @@ void sample(State state, int n){
       //likelihood of sample
       float likelihood = 1.0;
       likelihood *= accel_prior.probDensity(accel_proposal);
-      likelihood *= last_bias_prior.probDensity(last_bias_proposal)/last_bias_proposal_dist.probDensity(last_bias_proposal);
+      likelihood *= laststate.bias.probDensity(last_bias_proposal)/last_bias_proposal_dist.probDensity(last_bias_proposal);
       //likelihood *= bias_movement_prior.probDensity(bias_movement_proposal)/bias_movement_proposal_dist.probDensity(bias_movement_proposal);
       //likelihood *= noise_prior.probDensity(noise_proposal)/noise_proposal_dist.probDensity(noise_proposal);
       
@@ -97,14 +96,14 @@ void sample(State state, int n){
     }
 }
 
-void update_state(State state){
+void update_state(State laststate, State state){
     accel_posterior=new Histogram(-5,5,0.01);
-    last_bias_posterior=new Histogram(last_bias_prior.left(),last_bias_prior.right(),0.01);
+    last_bias_posterior=new Histogram(laststate.bias.left(),laststate.bias.right(),0.01);
     bias_posterior=new Histogram(-5,5,0.01);
     
-    sample(state, 5000);
+    sample(laststate, state, 5000);
     
-    last_bias_prior = new HistogramDensityFunction(bias_posterior);
+    state.bias = new HistogramDensityFunction(bias_posterior);
     
     state.a = new HistogramDensityFunction( accel_posterior );
 }
@@ -210,7 +209,7 @@ void draw(){
         continue;
       }
       
-      update_state(state);
+      update_state(laststate, state);
         
       dt = state.t - laststate.t;
         
@@ -235,7 +234,7 @@ void draw(){
     //draw priors
     stroke(255,0,0);
     accel_prior.draw( -2.0, 2.0, width/2, 2*height/3, 75, 200.0);
-    last_bias_prior.draw(-2.0,2.0,width/2, 1*height/3, 15, 200.0);
+    laststate.bias.draw(-2.0,2.0,width/2, 1*height/3, 15, 200.0);
     
     //draw posteriors
     if(accel_posterior!=null&&last_bias_posterior!=null){
