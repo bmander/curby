@@ -30,18 +30,29 @@ class Sampleset {
   }
 }
 
-ProbabilityDensityFunction bias_movement_prior;
-ProbabilityDensityFunction noise_prior;
+class Graph{
+  
+  ProbabilityDensityFunction bias_movement_prior;
+  ProbabilityDensityFunction noise_prior;
+ 
+  State laststate;
+  State state;
+  
+  Graph(){
+    bias_movement_prior = new GaussianDensityFunction(0,BIAS_WANDER);
+    noise_prior = new GaussianDensityFunction(0,ACCEL_NOISE_FUDGE*ACCEL_NOISE_RMS);
+  }
+  
+}
+
+Graph graph;
 
 Sampleset sampleset;
 
-State laststate;
-State state;
-
 void keyPressed(){
   if(key==' '){ //reset
-    state.s=new DegenerateDensityFunction(0);
-    state.v=new DegenerateDensityFunction(0);
+    graph.state.s=new DegenerateDensityFunction(0);
+    graph.state.v=new DegenerateDensityFunction(0);
   } else if(key=='p'){ //pause
     if(running){
       running=false;
@@ -73,15 +84,14 @@ void setup(){
   runonce=false;
   mode=MODE_AVS;
   
-  bias_movement_prior = new GaussianDensityFunction(0,BIAS_WANDER);
-  noise_prior = new GaussianDensityFunction(0,ACCEL_NOISE_FUDGE*ACCEL_NOISE_RMS);
+  graph = new Graph();
 }
 
 void sample(State laststate, State state, int n){
   
     ProbabilityDensityFunction last_bias_proposal_dist = new UniformDensityFunction(laststate.bias.left(),laststate.bias.right());
-    ProbabilityDensityFunction bias_movement_proposal_dist = bias_movement_prior;//new UniformDensityFunction(bias_movement_prior.left(),bias_movement_prior.right());
-    ProbabilityDensityFunction noise_proposal_dist = noise_prior;//new UniformDensityFunction(noise_prior.left(),noise_prior.right());
+    ProbabilityDensityFunction bias_movement_proposal_dist = graph.bias_movement_prior;//new UniformDensityFunction(bias_movement_prior.left(),bias_movement_prior.right());
+    ProbabilityDensityFunction noise_proposal_dist = graph.noise_prior;//new UniformDensityFunction(noise_prior.left(),noise_prior.right());
   
     for(int i=0; i<n; i++){
       float last_bias_proposal = last_bias_proposal_dist.sample();
@@ -203,26 +213,26 @@ void draw(){
       float t = reading.t/1000.0;
       
       // move the current state to the past
-      laststate=state;
+      graph.laststate=graph.state;
       
       // pop a new state into the present, with measurements from the IMU
       // if the past didn't exist, then this is the first measurement; no further work to do this iteration
-      if(laststate==null){
-        state = new State(a_obs,t,0);
-        state.s=new DegenerateDensityFunction(0);
-        state.v=new DegenerateDensityFunction(0);
-        state.a=new DegenerateDensityFunction(0);
+      if(graph.laststate==null){
+        graph.state = new State(a_obs,t,0);
+        graph.state.s=new DegenerateDensityFunction(0);
+        graph.state.v=new DegenerateDensityFunction(0);
+        graph.state.a=new DegenerateDensityFunction(0);
         continue;
       } else {
-        state = new State(a_obs,t,laststate.v.argmax());
+        graph.state = new State(a_obs,t,graph.laststate.v.argmax());
       }
       
-      update_state(laststate, state);
+      update_state(graph.laststate, graph.state);
         
-      dt = state.t - laststate.t;
+      dt = graph.state.t - graph.laststate.t;
         
-      state.v = advance_gaussian( laststate.v, laststate.a, dt );
-      state.s = advance_gaussian( laststate.s, laststate.v, dt );
+      graph.state.v = advance_gaussian( graph.laststate.v, graph.laststate.a, dt );
+      graph.state.s = advance_gaussian( graph.laststate.s, graph.laststate.v, dt );
           
       
     } catch (IMUParseException e){
@@ -238,7 +248,7 @@ void draw(){
     
     //draw priors
     stroke(255,0,0);
-    laststate.bias.draw(-2.0,2.0,width/2, 1*height/3, 5, 200.0);
+    graph.laststate.bias.draw(-2.0,2.0,width/2, 1*height/3, 5, 200.0);
     
     //draw posteriors
     if(sampleset.accel_samples!=null){
@@ -255,16 +265,16 @@ void draw(){
     text("'bias' sample histogram",5,20+2*height/3+20);
     fill(0,0,0);
   } else {
-    if(state!=null){
+    if(graph.state!=null){
       background(255);
       fill(28);
       text("dt="+fround(dt,3)+" s", width-200,height-20 );
-      text("a_obs="+fround(state.a_obs,3)+" ms^-2", 5, 20 );
-      text("argmax(v)="+fround(state.v.argmax(),3)+" ms^-1", 5, height/3+20);
-      text("argmax(s)="+fround(state.s.argmax(),3)+" m", 5, 2*height/3+20);
+      text("a_obs="+fround(graph.state.a_obs,3)+" ms^-2", 5, 20 );
+      text("argmax(v)="+fround(graph.state.v.argmax(),3)+" ms^-1", 5, height/3+20);
+      text("argmax(s)="+fround(graph.state.s.argmax(),3)+" m", 5, 2*height/3+20);
       fill(0,0,255);
-      text("argmax(a)="+fround(state.a.argmax(),2)+" ms^-2", 5, 20+20);
-      state.draw(200.0);
+      text("argmax(a)="+fround(graph.state.a.argmax(),2)+" ms^-2", 5, 20+20);
+      graph.state.draw(200.0);
     }
   }
   
