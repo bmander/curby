@@ -43,10 +43,35 @@ class Graph{
     noise_prior = new GaussianDensityFunction(0,ACCEL_NOISE_FUDGE*ACCEL_NOISE_RMS);
   }
   
+  void sample(int n){
+  
+    ProbabilityDensityFunction last_bias_proposal_dist = new UniformDensityFunction(laststate.bias.left(),laststate.bias.right());
+    ProbabilityDensityFunction bias_movement_proposal_dist = graph.bias_movement_prior;//new UniformDensityFunction(bias_movement_prior.left(),bias_movement_prior.right());
+    ProbabilityDensityFunction noise_proposal_dist = graph.noise_prior;//new UniformDensityFunction(noise_prior.left(),noise_prior.right());
+  
+    for(int i=0; i<n; i++){
+      float last_bias_proposal = last_bias_proposal_dist.sample();
+      float bias_movement_proposal = bias_movement_proposal_dist.sample();
+      float noise_proposal = noise_proposal_dist.sample();
+      float bias_proposal = last_bias_proposal+bias_movement_proposal;
+      float accel_proposal = state.a_obs-(bias_proposal+noise_proposal);
+    
+      //likelihood of sample
+      float likelihood = 1.0;
+      likelihood *= state.a.probDensity(accel_proposal);
+      likelihood *= laststate.bias.probDensity(last_bias_proposal)/last_bias_proposal_dist.probDensity(last_bias_proposal);
+      //likelihood *= bias_movement_prior.probDensity(bias_movement_proposal)/bias_movement_proposal_dist.probDensity(bias_movement_proposal);
+      //likelihood *= noise_prior.probDensity(noise_proposal)/noise_proposal_dist.probDensity(noise_proposal);
+      
+      sampleset.accel_samples.add( accel_proposal, likelihood );
+      sampleset.bias_samples.add( bias_proposal, likelihood );
+    }
+  }
+  
   void update(){
     sampleset = new Sampleset(laststate);
     
-    sample(laststate, state, 5000);
+    sample(5000);
     
     state.bias = new HistogramDensityFunction( sampleset.bias_samples );
     
@@ -97,30 +122,7 @@ void setup(){
   graph = new Graph();
 }
 
-void sample(State laststate, State state, int n){
-  
-    ProbabilityDensityFunction last_bias_proposal_dist = new UniformDensityFunction(laststate.bias.left(),laststate.bias.right());
-    ProbabilityDensityFunction bias_movement_proposal_dist = graph.bias_movement_prior;//new UniformDensityFunction(bias_movement_prior.left(),bias_movement_prior.right());
-    ProbabilityDensityFunction noise_proposal_dist = graph.noise_prior;//new UniformDensityFunction(noise_prior.left(),noise_prior.right());
-  
-    for(int i=0; i<n; i++){
-      float last_bias_proposal = last_bias_proposal_dist.sample();
-      float bias_movement_proposal = bias_movement_proposal_dist.sample();
-      float noise_proposal = noise_proposal_dist.sample();
-      float bias_proposal = last_bias_proposal+bias_movement_proposal;
-      float accel_proposal = state.a_obs-(bias_proposal+noise_proposal);
-    
-      //likelihood of sample
-      float likelihood = 1.0;
-      likelihood *= state.a.probDensity(accel_proposal);
-      likelihood *= laststate.bias.probDensity(last_bias_proposal)/last_bias_proposal_dist.probDensity(last_bias_proposal);
-      //likelihood *= bias_movement_prior.probDensity(bias_movement_proposal)/bias_movement_proposal_dist.probDensity(bias_movement_proposal);
-      //likelihood *= noise_prior.probDensity(noise_proposal)/noise_proposal_dist.probDensity(noise_proposal);
-      
-      sampleset.accel_samples.add( accel_proposal, likelihood );
-      sampleset.bias_samples.add( bias_proposal, likelihood );
-    }
-}
+
 
 
 
