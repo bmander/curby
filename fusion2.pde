@@ -43,7 +43,8 @@ class Graph{
     noise_prior = new GaussianDensityFunction(0,ACCEL_NOISE_FUDGE*ACCEL_NOISE_RMS);
   }
   
-  void sample(int n){
+  Sampleset sample(int n){
+    Sampleset sampleset = new Sampleset(laststate);
   
     ProbabilityDensityFunction last_bias_proposal_dist = new UniformDensityFunction(laststate.bias.left(),laststate.bias.right());
     ProbabilityDensityFunction bias_movement_proposal_dist = graph.bias_movement_prior;//new UniformDensityFunction(bias_movement_prior.left(),bias_movement_prior.right());
@@ -66,16 +67,17 @@ class Graph{
       sampleset.accel_samples.add( accel_proposal, likelihood );
       sampleset.bias_samples.add( bias_proposal, likelihood );
     }
+    
+    return sampleset;
   }
   
   void update(){
-    sampleset = new Sampleset(laststate);
+    Sampleset smp = sample(5000);
     
-    sample(5000);
+    state.bias = new HistogramDensityFunction( smp.bias_samples );
+    state.a = new HistogramDensityFunction( smp.accel_samples );
     
-    state.bias = new HistogramDensityFunction( sampleset.bias_samples );
-    
-    state.a = new HistogramDensityFunction( sampleset.accel_samples );
+    sampleset = smp;
   }
   
 }
