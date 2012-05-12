@@ -22,12 +22,10 @@ int mode;
 
 class Sampleset {
   Histogram accel_samples;
-  Histogram last_bias_samples;
   Histogram bias_samples;
   
   Sampleset(State laststate){
     accel_samples=new Histogram(-5,5,0.01);
-    last_bias_samples=new Histogram(laststate.bias.left(),laststate.bias.right(),0.01);
     bias_samples=new Histogram(-5,5,0.01);
   }
 }
@@ -102,7 +100,6 @@ void sample(State laststate, State state, int n){
       //likelihood *= noise_prior.probDensity(noise_proposal)/noise_proposal_dist.probDensity(noise_proposal);
       
       sampleset.accel_samples.add( accel_proposal, likelihood );
-      sampleset.last_bias_samples.add( last_bias_proposal, likelihood );
       sampleset.bias_samples.add( bias_proposal, likelihood );
     }
 }
@@ -243,24 +240,22 @@ void draw(){
     //draw priors
     stroke(255,0,0);
     accel_prior.draw( -2.0, 2.0, width/2, 2*height/3, 75, 200.0);
-    laststate.bias.draw(-2.0,2.0,width/2, 1*height/3, 15, 200.0);
+    laststate.bias.draw(-2.0,2.0,width/2, 1*height/3, 5, 200.0);
     
     //draw posteriors
-    if(sampleset.accel_samples!=null&&sampleset.last_bias_samples!=null){
+    if(sampleset.accel_samples!=null){
       fill(0);
       sampleset.accel_samples.draw(width/2,2*height/3,200,0.0002);
-      sampleset.last_bias_samples.draw(width/2,height/3,200,0.0002);
       sampleset.bias_samples.draw(width/2,0,200,0.0002);
     }
     
     //draw text
     fill(255,0,0);
     text("'a' prior distribution",5,20);
-    text("'last bias' prior distribution",5,20+height/3);
+    text("'last_bias' prior distribution",5,20+height/3);
     fill(0,0,0);
-    text("'a' posterior distribution",5,20+20);
-    text("'last bias' posterior distribution",5,20+height/3+20);
-    text("'bias' posterior distribution",5,20+2*height/3+20);
+    text("'a' sample histogram",5,20+20);
+    text("'bias' sample histogram",5,20+2*height/3+20);
     fill(0,0,0);
   } else {
     if(state!=null){
