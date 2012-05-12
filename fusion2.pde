@@ -32,6 +32,8 @@ class Sampleset {
 
 class Graph{
   
+  float dt;
+  
   ProbabilityDensityFunction bias_movement_prior;
   ProbabilityDensityFunction noise_prior;
  
@@ -72,12 +74,18 @@ class Graph{
   }
   
   void update(){
+    //sample the portion of the graph connected to state.a
     Sampleset smp = sample(5000);
+    sampleset = smp; //export it to the global scope so we can draw it
     
+    //update probability distriubtions using sample set
     state.bias = new HistogramDensityFunction( smp.bias_samples );
     state.a = new HistogramDensityFunction( smp.accel_samples );
     
-    sampleset = smp;
+    //update current state velocity and position using analytical methods
+    dt = graph.state.t - graph.laststate.t;
+    state.v = advance_gaussian( laststate.v, laststate.a, dt );
+    state.s = advance_gaussian( laststate.s, laststate.v, dt );
   }
   
 }
@@ -123,10 +131,6 @@ void setup(){
   
   graph = new Graph();
 }
-
-
-
-
 
 ProbabilityDensityFunction advance_by_sampling( ProbabilityDensityFunction x0, ProbabilityDensityFunction dx, float dt, int n ){
   
@@ -201,7 +205,7 @@ ProbabilityDensityFunction advance_gaussian( ProbabilityDensityFunction x0, Prob
 }
 
 void draw(){
-  float dt=0;
+  //float dt=0;
  
   // update the state until the serial stream runs dry
   while(running || runonce){
@@ -234,12 +238,6 @@ void draw(){
       }
       
       graph.update();
-        
-      dt = graph.state.t - graph.laststate.t;
-        
-      graph.state.v = advance_gaussian( graph.laststate.v, graph.laststate.a, dt );
-      graph.state.s = advance_gaussian( graph.laststate.s, graph.laststate.v, dt );
-          
       
     } catch (IMUParseException e){
     }
@@ -274,7 +272,7 @@ void draw(){
     if(graph.state!=null){
       background(255);
       fill(28);
-      text("dt="+fround(dt,3)+" s", width-200,height-20 );
+      text("dt="+fround(graph.dt,3)+" s", width-200,height-20 );
       text("a_obs="+fround(graph.state.a_obs,3)+" ms^-2", 5, 20 );
       text("argmax(v)="+fround(graph.state.v.argmax(),3)+" ms^-1", 5, height/3+20);
       text("argmax(s)="+fround(graph.state.s.argmax(),3)+" m", 5, 2*height/3+20);
