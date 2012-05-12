@@ -81,10 +81,16 @@ void setup(){
   noise_prior = new GaussianDensityFunction(0,0.038);
 }
 
-void sampleonce(float a_obs){
-      float last_bias_proposal = random(last_bias_prior.left(),last_bias_prior.right());
-      float bias_movement_proposal = random(bias_movement_prior.left(), bias_movement_prior.right());
-      float noise_proposal = random(noise_prior.left(),noise_prior.right());
+void sample(float a_obs, int n){
+  
+    UniformDensityFunction last_bias_proposal_dist = new UniformDensityFunction(last_bias_prior.left(),last_bias_prior.right());
+    UniformDensityFunction bias_movement_proposal_dist = new UniformDensityFunction(bias_movement_prior.left(),bias_movement_prior.right());
+    UniformDensityFunction noise_proposal_dist = new UniformDensityFunction(noise_prior.left(),noise_prior.right());
+  
+    for(int i=0; i<n; i++){
+      float last_bias_proposal = last_bias_proposal_dist.sample();
+      float bias_movement_proposal = bias_movement_proposal_dist.sample();
+      float noise_proposal = noise_proposal_dist.sample();
       float bias_proposal = last_bias_proposal+bias_movement_proposal;
       float accel_proposal = a_obs-(bias_proposal+noise_proposal);
     
@@ -98,12 +104,6 @@ void sampleonce(float a_obs){
       accel_posterior.add( accel_proposal, likelihood );
       last_bias_posterior.add( last_bias_proposal, likelihood );
       bias_posterior.add( bias_proposal, likelihood );
-}
-
-void sample(float a_obs, int n){
-  
-    for(int i=0; i<n; i++){
-      sampleonce(a_obs);
     }
 }
 
