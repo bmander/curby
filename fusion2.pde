@@ -21,14 +21,14 @@ boolean sampling;
 int mode;
 
 class Sampleset {
-  Histogram accel_posterior;
-  Histogram last_bias_posterior;
-  Histogram bias_posterior;
+  Histogram accel_samples;
+  Histogram last_bias_samples;
+  Histogram bias_samples;
   
   Sampleset(State laststate){
-    accel_posterior=new Histogram(-5,5,0.01);
-    last_bias_posterior=new Histogram(laststate.bias.left(),laststate.bias.right(),0.01);
-    bias_posterior=new Histogram(-5,5,0.01);
+    accel_samples=new Histogram(-5,5,0.01);
+    last_bias_samples=new Histogram(laststate.bias.left(),laststate.bias.right(),0.01);
+    bias_samples=new Histogram(-5,5,0.01);
   }
 }
 
@@ -77,7 +77,6 @@ void setup(){
   mode=MODE_AVS;
   
   accel_prior=new DoubleExponentialDensityFunction( 0, WANDERLUST );
-  //last_bias_prior=new UniformDensityFunction(-0.5,0.5);
   bias_movement_prior = new GaussianDensityFunction(0,BIAS_WANDER);
   noise_prior = new GaussianDensityFunction(0,ACCEL_NOISE_FUDGE*ACCEL_NOISE_RMS);
 }
@@ -102,9 +101,9 @@ void sample(State laststate, State state, int n){
       //likelihood *= bias_movement_prior.probDensity(bias_movement_proposal)/bias_movement_proposal_dist.probDensity(bias_movement_proposal);
       //likelihood *= noise_prior.probDensity(noise_proposal)/noise_proposal_dist.probDensity(noise_proposal);
       
-      sampleset.accel_posterior.add( accel_proposal, likelihood );
-      sampleset.last_bias_posterior.add( last_bias_proposal, likelihood );
-      sampleset.bias_posterior.add( bias_proposal, likelihood );
+      sampleset.accel_samples.add( accel_proposal, likelihood );
+      sampleset.last_bias_samples.add( last_bias_proposal, likelihood );
+      sampleset.bias_samples.add( bias_proposal, likelihood );
     }
 }
 
@@ -113,9 +112,9 @@ void update_state(State laststate, State state){
     
     sample(laststate, state, 5000);
     
-    state.bias = new HistogramDensityFunction( sampleset.bias_posterior );
+    state.bias = new HistogramDensityFunction( sampleset.bias_samples );
     
-    state.a = new HistogramDensityFunction( sampleset.accel_posterior );
+    state.a = new HistogramDensityFunction( sampleset.accel_samples );
 }
 
 ProbabilityDensityFunction advance_by_sampling( ProbabilityDensityFunction x0, ProbabilityDensityFunction dx, float dt, int n ){
@@ -247,11 +246,11 @@ void draw(){
     laststate.bias.draw(-2.0,2.0,width/2, 1*height/3, 15, 200.0);
     
     //draw posteriors
-    if(sampleset.accel_posterior!=null&&sampleset.last_bias_posterior!=null){
+    if(sampleset.accel_samples!=null&&sampleset.last_bias_samples!=null){
       fill(0);
-      sampleset.accel_posterior.draw(width/2,2*height/3,200,0.0002);
-      sampleset.last_bias_posterior.draw(width/2,height/3,200,0.0002);
-      sampleset.bias_posterior.draw(width/2,0,200,0.0002);
+      sampleset.accel_samples.draw(width/2,2*height/3,200,0.0002);
+      sampleset.last_bias_samples.draw(width/2,height/3,200,0.0002);
+      sampleset.bias_samples.draw(width/2,0,200,0.0002);
     }
     
     //draw text
