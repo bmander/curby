@@ -11,8 +11,6 @@ class State{
   State(float a_obs, float t){
     this.bias = new UniformDensityFunction(-0.5,0.5);
     
-    this.s=new DegenerateDensityFunction(0);
-    this.v=new DegenerateDensityFunction(0);
     this.a_obs=a_obs;
     this.t=t;
     

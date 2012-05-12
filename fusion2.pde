@@ -69,7 +69,7 @@ void setup(){
   
   imu = new IMU(this, serialPort);
   
-  state=null;
+  
   running=true;
   runonce=false;
   mode=MODE_AVS;
@@ -212,6 +212,9 @@ void draw(){
       
       // if the past didn't exist, then this is the first measurement; no further work to do this iteration
       if(laststate==null){
+        state.s=new DegenerateDensityFunction(0);
+        state.v=new DegenerateDensityFunction(0);
+        state.a=new DegenerateDensityFunction(0);
         continue;
       }
       
