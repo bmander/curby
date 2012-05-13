@@ -27,34 +27,7 @@ class State{
     this.a=a;
   }
   
-  void draw_probpane(ProbabilityDensityFunction p, int pane, float xscale, float yscale, String caption, float tickpitch){
-    stroke(0);
-    fill(0);
-    float functionwidth = (width/2)/xscale;
-    p.draw(-functionwidth, functionwidth, width/2, pane*height/NPANES, yscale, xscale);
-    text(caption, 5, height-((pane+1)*height/NPANES-20));
-    
-    //draw scale ticks
-    draw_obs(0,pane,xscale,null, color(200));
-    for(float i=0; i<functionwidth; i+=tickpitch){
-      draw_obs(i,pane,xscale,null, color(200));
-      draw_obs(-i,pane,xscale,null, color(200));
-    }
-  }
-  
-  void draw_obs(float x, int pane, float xzoom, String caption, color strokecolor){
-    stroke(strokecolor);
-    fill(strokecolor);
-    
-    line(xzoom*x+width/2,
-      height-((pane+1)*height/NPANES),
-      xzoom*x+width/2,
-      height-((pane)*height/NPANES));
-      
-    if(caption!=null){
-      text(caption, 5, height-((pane+1)*height/NPANES-40) );
-    }
-  }
+
   
   void draw(float zoom){
     strokeWeight(0.5);
@@ -68,9 +41,9 @@ class State{
     draw_probpane( s, 1, 200.0, 10.0, "argmax(s)="+fround(s.argmax(),3)+" m", 1.0 );
     
     draw_probpane( w, 0, 3.0, 1000.0, "argmax(w)="+fround(w.argmax(),3)+" deg/s", 20.0 );
-    draw_obs(w_obs,0,3.0, "w_obs="+fround(w_obs,3)+" deg/s", color(0,0,255));
+    draw_obs(w_obs,0,3.0, "w_obs="+fround(w_obs,3)+" deg/s", color(0,0,255),NPANES);
     
-    draw_obs(a_obs,3,zoom, "a_obs="+fround(a_obs,3)+" ms^-2", color(0,0,255));
+    draw_obs(a_obs,3,zoom, "a_obs="+fround(a_obs,3)+" ms^-2", color(0,0,255),NPANES);
     draw_probpane(a,3,200.0,10.0, "argmax(a)="+fround(a.argmax(),2)+" ms^-2", 1.0);
     
 

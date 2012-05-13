@@ -229,6 +229,39 @@ void draw_histogram(Histogram histogram, int pane, float xscale, float yscale, S
   text(caption,5,20+(NPROBPANES-pane-1)*height/NPROBPANES);
 }
 
+void draw_probpane(ProbabilityDensityFunction p, int pane, float xscale, float yscale, String caption, float tickpitch){
+  draw_probpane(p,pane,xscale,yscale,caption,tickpitch,NPANES);
+}
+
+void draw_probpane(ProbabilityDensityFunction p, int pane, float xscale, float yscale, String caption, float tickpitch, int npanes){
+  stroke(0);
+  fill(0);
+  float functionwidth = (width/2)/xscale;
+  p.draw(-functionwidth, functionwidth, width/2, pane*height/npanes, yscale, xscale);
+  text(caption, 5, height-((pane+1)*height/npanes-20));
+    
+  //draw scale ticks
+  draw_obs(0,pane,xscale,null, color(200),npanes);
+  for(float i=0; i<functionwidth; i+=tickpitch){
+    draw_obs(i,pane,xscale,null, color(200),npanes);
+    draw_obs(-i,pane,xscale,null, color(200),npanes);
+  }
+}
+  
+void draw_obs(float x, int pane, float xzoom, String caption, color strokecolor, int npanes){
+  stroke(strokecolor);
+  fill(strokecolor);
+    
+  line(xzoom*x+width/2,
+    height-((pane+1)*height/npanes),
+    xzoom*x+width/2,
+    height-((pane)*height/npanes));
+      
+  if(caption!=null){
+    text(caption, 5, height-((pane+1)*height/npanes-40) );
+  }
+}
+
 void draw(){
   //float dt=0;
  
@@ -262,8 +295,7 @@ void draw(){
     background(255);
     
     //draw priors
-    stroke(255,0,0);
-    graph.laststate.bias.draw(-2.0,2.0,width/2, 3*height/NPROBPANES, 5, 200.0);
+    draw_probpane(graph.laststate.bias, 3, 200.0, 5.0, "'last_bias prior' distribution", 1, NPROBPANES);
     
     //draw posteriors
     if(sampleset.accel_samples!=null){
@@ -272,9 +304,6 @@ void draw(){
       draw_histogram( sampleset.bias_samples, 2, 200, 0.0002, "'bias' sample histogram" );
     }
     
-    //draw text
-    fill(255,0,0);
-    text("'last_bias' prior distribution",5,20+height/NPROBPANES);
   } else {
     if(graph.state!=null){
       background(255);
