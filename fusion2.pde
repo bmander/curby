@@ -152,11 +152,11 @@ class Graph{
     sampleset = smp; //export it to the global scope so we can draw it
     
     //update probability distriubtions using sample set
-    state.bias = new HistogramDensityFunction( smp.bias_samples.smooth(2) );
-    state.a = new HistogramDensityFunction( smp.accel_samples.smooth(2) );
-    state.wbias = new HistogramDensityFunction( smp.wbias_samples.smooth(2) );
-    state.w = new HistogramDensityFunction( smp.w_samples );
-    state.theta = new HistogramDensityFunction( smp.theta_samples );
+    state.bias = new HistogramDensityFunction( smp.bias_samples.smooth(3) );
+    state.a = new HistogramDensityFunction( smp.accel_samples.smooth(3) );
+    state.wbias = new HistogramDensityFunction( smp.wbias_samples.smooth(3) );
+    state.w = new HistogramDensityFunction( smp.w_samples.smooth(3) );
+    state.theta = new HistogramDensityFunction( smp.theta_samples.smooth(3) );
     
     //update current state velocity and position using analytical methods
     dt = graph.state.t - graph.laststate.t;
@@ -352,7 +352,7 @@ void draw(){
       float w_obs = -reading.wy/LSB_PER_DEGREE_PER_SECOND;
       float t = reading.t/1000.0;
       
-      graph.update(a_obs, w_obs, t, 100000);
+      graph.update(a_obs, w_obs, t, 50000);
       
     } catch (IMUParseException e){
     }
@@ -387,5 +387,5 @@ void draw(){
     }
   }
   
-  delay(1000);
+  //delay(100);
 }
