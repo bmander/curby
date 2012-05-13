@@ -11,6 +11,7 @@ int MODE_PROB = 1;
 //free paramters
 float TIMIDNESS=5.0; //tendancy to decelerate given a velocity
 float WANDERLUST=4.0; //tau of exponential that describes the acceleration prior
+float SPINNYNESS=0.1; //tau of exponential that describes the tendancy to spin
 float BIAS_WANDER=0.0001; //stddev of movement of bias between successive time slices
 float ACCEL_NOISE_RMS=0.038; //data sheet value for accelerometer
 float ACCEL_NOISE_FUDGE=1.2; //it seems slightly higher in practice
