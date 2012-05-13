@@ -70,19 +70,8 @@ class Graph{
     ProbabilityDensityFunction last_wbias_proposal_dist = new UniformDensityFunction(laststate.wbias.left(),laststate.wbias.right());
     ProbabilityDensityFunction wnoise_proposal_dist = graph.wnoise_prior;
     
-    ProbabilityDensityFunction last_w_proposal_dist;
-    ProbabilityDensityFunction last_theta_proposal_dist;
-    //last_w_proposal_dist = new GaussianDensityFunction(laststate.w.mean(), laststate.w.stddev());
-    if(laststate.w.left()==laststate.w.right()){
-      last_w_proposal_dist=laststate.w; //it's a degenerate distribution
-    } else {
-      last_w_proposal_dist = new UniformDensityFunction(laststate.w.left(), laststate.w.right());
-    }
-    if(laststate.theta.left()==laststate.theta.right()){
-      last_theta_proposal_dist=laststate.theta; //degenerate function
-    } else {
-      last_theta_proposal_dist=new UniformDensityFunction(laststate.theta.left(), laststate.theta.right());
-    }
+    ProbabilityDensityFunction last_w_proposal_dist = new GaussianDensityFunction(laststate.w.mean(), laststate.w.stddev());
+    ProbabilityDensityFunction last_theta_proposal_dist= new GaussianDensityFunction(laststate.theta.mean(), laststate.theta.stddev());
   
     for(int i=0; i<n; i++){
       float last_bias_proposal = last_bias_proposal_dist.sample();

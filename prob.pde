@@ -144,7 +144,7 @@ class UniformDensityFunction extends ProbabilityDensityFunction{
   }
   
   float stddev(){
-    throw new UnsupportedOperationException();
+    return 0.2886*(high-low);
   }
   
   float mean(){
