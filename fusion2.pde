@@ -34,8 +34,8 @@ class Sampleset {
   Sampleset(State laststate){
     accel_samples=new Histogram(-10,10,0.01);
     bias_samples=new Histogram(-5,5,0.01);
-    w_samples=new Histogram(-150,150,0.1);
-    wbias_samples=new Histogram(-1,1,0.1);
+    w_samples=new Histogram(-150,150,0.05);
+    wbias_samples=new Histogram(-1,1,0.07);
   }
 }
 
@@ -91,7 +91,7 @@ class Graph{
     return sampleset;
   }
   
-  void update(float a_obs, float w_obs, float t){
+  void update(float a_obs, float w_obs, float t, int n){
     // move the current state to the past
     laststate=state;
       
@@ -108,12 +108,13 @@ class Graph{
     }
     
     //sample the portion of the graph connected to state.a
-    Sampleset smp = sample(5000);
+    Sampleset smp = sample(n);
     sampleset = smp; //export it to the global scope so we can draw it
     
     //update probability distriubtions using sample set
     state.bias = new HistogramDensityFunction( smp.bias_samples );
     state.a = new HistogramDensityFunction( smp.accel_samples );
+    state.wbias = new HistogramDensityFunction( smp.wbias_samples );
     
     //update current state velocity and position using analytical methods
     dt = graph.state.t - graph.laststate.t;
@@ -288,6 +289,8 @@ void draw_obs(float x, int pane, float xzoom, String caption, color strokecolor,
 void draw(){
   //float dt=0;
  
+  //running=false;
+  //runonce=true;
   // update the state until the serial stream runs dry
   while(running || runonce){
     
@@ -304,7 +307,7 @@ void draw(){
       float w_obs = reading.wy/LSB_PER_DEGREE_PER_SECOND;
       float t = reading.t/1000.0;
       
-      graph.update(a_obs, w_obs, t);
+      graph.update(a_obs, w_obs, t, 7000);
       
     } catch (IMUParseException e){
     }
@@ -339,5 +342,5 @@ void draw(){
     }
   }
   
-  //delay(100);
+  //delay(200);
 }
