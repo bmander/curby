@@ -24,6 +24,8 @@ abstract class ProbabilityDensityFunction{
   abstract float argmax();
   
   abstract float stddev();
+  
+  abstract float mean();
 }
 
 class DegenerateDensityFunction extends ProbabilityDensityFunction{
@@ -64,6 +66,10 @@ class DegenerateDensityFunction extends ProbabilityDensityFunction{
   void draw(float left, float right, float shiftx, float shifty, float sc, float zoom){
     line(shiftx+this.c*zoom,height-(shifty),shiftx+this.c*zoom,height-(shifty+sc));
   }
+  
+  float mean(){
+    return c;
+  }
  
 }
 
@@ -99,7 +105,9 @@ class DoubleExponentialDensityFunction extends ProbabilityDensityFunction{
     return 2*1/tau;
   }
   
-  
+  float mean(){
+    return mean;
+  }
 }
 
 class UniformDensityFunction extends ProbabilityDensityFunction{
@@ -137,6 +145,10 @@ class UniformDensityFunction extends ProbabilityDensityFunction{
   
   float stddev(){
     throw new UnsupportedOperationException();
+  }
+  
+  float mean(){
+    return (low+high)/2;
   }
 }
 
@@ -261,6 +273,10 @@ class HistogramDensityFunction extends ProbabilityDensityFunction{
   float stddev(){
     return sqrt(variance());
   }
+  
+  float mean(){
+    return expectedvalue();
+  }
 }
 
 class GaussianDensityFunction extends ProbabilityDensityFunction{
@@ -302,6 +318,10 @@ class GaussianDensityFunction extends ProbabilityDensityFunction{
   
   float stddev(){
     return stddev;
+  }
+  
+  float mean(){
+    return mean;
   }
 }
 

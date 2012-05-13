@@ -72,6 +72,7 @@ class Graph{
     
     ProbabilityDensityFunction last_w_proposal_dist;
     ProbabilityDensityFunction last_theta_proposal_dist;
+    //last_w_proposal_dist = new GaussianDensityFunction(laststate.w.mean(), laststate.w.stddev());
     if(laststate.w.left()==laststate.w.right()){
       last_w_proposal_dist=laststate.w; //it's a degenerate distribution
     } else {
