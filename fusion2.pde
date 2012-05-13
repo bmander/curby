@@ -71,6 +71,7 @@ class Graph{
       float accel_proposal = state.a_obs-(bias_proposal+noise_proposal);
       
       float wbias_proposal = last_wbias_proposal_dist.sample();
+      float w_proposal = state.w_obs-wbias_proposal;
     
       //likelihood of sample
       float likelihood = 1.0;
@@ -82,6 +83,7 @@ class Graph{
       sampleset.accel_samples.add( accel_proposal, likelihood );
       sampleset.bias_samples.add( bias_proposal, likelihood );
       sampleset.wbias_samples.add( wbias_proposal, likelihood );
+      sampleset.w_samples.add( w_proposal, likelihood );
     }
     
     return sampleset;
@@ -321,7 +323,7 @@ void draw(){
       fill(0);
       draw_histogram( sampleset.accel_samples, 4, 200, 0.0002, "'a' sample histogram", 1.0 );
       draw_histogram( sampleset.bias_samples, 2, 200, 0.0002, "'bias' sample histogram", 1.0 );
-      draw_histogram( sampleset.w_samples, 1, 3, 0.0002, "'w' sample histogram", 20.0 );
+      draw_histogram( sampleset.w_samples, 1, 100, 0.0002, "'w' sample histogram", 1.0 );
       draw_histogram( sampleset.wbias_samples, 0, 200, 0.0002, "'wbias' sample histogram", 0.1 );
     }
     
