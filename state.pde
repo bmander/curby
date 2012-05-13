@@ -1,10 +1,11 @@
 class State{
   ProbabilityDensityFunction bias;
+  ProbabilityDensityFunction wbias;
   
   ProbabilityDensityFunction s;
   ProbabilityDensityFunction v;
   ProbabilityDensityFunction a;
-  ProbabilityDensityFunction omega;
+  ProbabilityDensityFunction w;
   float t;
   
   float a_obs;
@@ -12,13 +13,14 @@ class State{
   
   State(float a_obs, float w_obs, float t, float v){
     this.bias = new UniformDensityFunction(-0.5,0.5);
+    this.wbias = new UniformDensityFunction(-0.5,0.5);
     
     this.a_obs=a_obs;
     this.w_obs=w_obs;
     this.t=t;
     
     this.a=new DoubleExponentialDensityFunction( -v*TIMIDNESS, WANDERLUST );
-    this.omega = new DoubleExponentialDensityFunction( 0, SPINNYNESS );
+    this.w = new DoubleExponentialDensityFunction( 0, SPINNYNESS );
   }
   
   void setA(ProbabilityDensityFunction a){
@@ -36,7 +38,7 @@ class State{
     line(zoom*a_obs+width/2,0,zoom*a_obs+width/2,height/NPANES);
     v.draw(-2.0, 2.0, width/2, 2*height/NPANES, 10, 200.0);
     s.draw(-2.0, 2.0, width/2, 1*height/NPANES, 10, 200.0);
-    omega.draw(-300,300,width/2, 0*height/NPANES, 1000, 3);
+    w.draw(-300,300,width/2, 0*height/NPANES, 1000, 3);
     line(3*w_obs+width/2,
       3*height/NPANES,
       3*w_obs+width/2,

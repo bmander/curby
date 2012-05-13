@@ -2,6 +2,7 @@ import processing.serial.*;
 final String serialPort = "COM14"; // replace this with your serial port. On windows you will need something like "COM1".
 
 int NPANES=4;
+int NPROBPANES=5;
 
 float MPERSSQUARED_PER_BIT = (1/256.0)*9.807; //(g/LSB)*(m*s^-2/g)=m*s^-2/LSB
 float LSB_PER_DEGREE_PER_SECOND = 14.375;
@@ -257,21 +258,21 @@ void draw(){
     
     //draw priors
     stroke(255,0,0);
-    graph.laststate.bias.draw(-2.0,2.0,width/2, 1*height/3, 5, 200.0);
+    graph.laststate.bias.draw(-2.0,2.0,width/2, 3*height/NPROBPANES, 5, 200.0);
     
     //draw posteriors
     if(sampleset.accel_samples!=null){
       fill(0);
-      sampleset.accel_samples.draw(width/2,2*height/3,200,0.0002);
-      sampleset.bias_samples.draw(width/2,0,200,0.0002);
+      sampleset.accel_samples.draw(width/2,4*height/NPROBPANES,200,0.0002);
+      sampleset.bias_samples.draw(width/2,2*height/NPROBPANES,200,0.0002);
     }
     
     //draw text
     fill(255,0,0);
-    text("'last_bias' prior distribution",5,20+height/3);
+    text("'last_bias' prior distribution",5,20+height/NPROBPANES);
     fill(0,0,0);
     text("'a' sample histogram",5,20+20);
-    text("'bias' sample histogram",5,20+2*height/3+20);
+    text("'bias' sample histogram",5,20+2*height/NPROBPANES+20);
     fill(0,0,0);
   } else {
     if(graph.state!=null){
