@@ -33,7 +33,7 @@ class Sampleset {
   Histogram wbias_samples;
   
   Sampleset(State laststate){
-    accel_samples=new Histogram(-10,10,0.01);
+    accel_samples=new Histogram(-10,10,0.02);
     bias_samples=new Histogram(-5,5,0.01);
     w_samples=new Histogram(-150,150,0.05);
     wbias_samples=new Histogram(-1,1,0.07);

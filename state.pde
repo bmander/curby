@@ -6,6 +6,7 @@ class State{
   ProbabilityDensityFunction v;
   ProbabilityDensityFunction a;
   ProbabilityDensityFunction w;
+  ProbabilityDensityFunction theta;
   float t;
   
   float a_obs;
