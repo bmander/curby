@@ -346,13 +346,17 @@ class Histogram {
   void add(float x, float weight){
 
     int bucket = int((x-this.left)/this.pitch);
-    if(bucket<=0 || bucket>=this.buckets.length){
-      return;
-    }
+    //if(bucket<=0 || bucket>=this.buckets.length){
+    //  return;
+    //}
     
-    this.buckets[bucket] += weight;
-    mass += weight;
+    add_to_bucket(bucket,weight);
 
+  }
+  
+  void add_to_bucket( int i, float weight ){
+    this.buckets[i] += weight;
+    mass += weight;
   }
   
   float count(int bucket){
@@ -378,5 +382,19 @@ class Histogram {
       //line(shift+x,height-0,shift+x,height-y);
       rect(shiftx+x*scalex,height-shifty,pitch*scalex,-y*scaley);
     }
+  }
+  
+  Histogram smooth(int bucketradius){
+    Histogram ret = new Histogram(this.left,this.right,this.pitch);
+    for(int i=0; i<this.buckets.length; i++){
+      int ll = max(0,i-bucketradius);
+      int rr = min(this.buckets.length-1,i+bucketradius);
+      float ss=0;
+      for(int j=ll; j<=rr; j++){
+        ss += this.buckets[j];
+      }
+      ret.add_to_bucket( i, ss/(rr-ll) );
+    }
+    return ret;
   }
 }
