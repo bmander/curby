@@ -28,10 +28,14 @@ int mode;
 class Sampleset {
   Histogram accel_samples;
   Histogram bias_samples;
+  Histogram w_samples;
+  Histogram wbias_samples;
   
   Sampleset(State laststate){
     accel_samples=new Histogram(-10,10,0.01);
     bias_samples=new Histogram(-5,5,0.01);
+    w_samples=new Histogram(-150,150,0.01);
+    wbias_samples=new Histogram(-1,1,0.01);
   }
 }
 
@@ -312,6 +316,8 @@ void draw(){
       fill(0);
       draw_histogram( sampleset.accel_samples, 4, 200, 0.0002, "'a' sample histogram", 1.0 );
       draw_histogram( sampleset.bias_samples, 2, 200, 0.0002, "'bias' sample histogram", 1.0 );
+      draw_histogram( sampleset.w_samples, 1, 3, 0.0002, "'w' sample histogram", 20.0 );
+      draw_histogram( sampleset.wbias_samples, 0, 200, 0.0002, "'wbias' sample histogram", 0.1 );
     }
     
   } else {
