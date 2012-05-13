@@ -346,6 +346,10 @@ class Histogram {
   void add(float x, float weight){
 
     int bucket = int((x-this.left)/this.pitch);
+    if(bucket<=0 || bucket>=this.buckets.length){
+      return;
+    }
+    
     this.buckets[bucket] += weight;
     mass += weight;
 

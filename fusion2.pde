@@ -4,6 +4,7 @@ final String serialPort = "COM14"; // replace this with your serial port. On win
 int NPANES=4;
 
 float MPERSSQUARED_PER_BIT = (1/256.0)*9.807; //(g/LSB)*(m*s^-2/g)=m*s^-2/LSB
+float LSB_PER_DEGREE_PER_SECOND = 14.375;
 
 int MODE_AVS = 0;
 int MODE_PROB = 1;
@@ -28,7 +29,7 @@ class Sampleset {
   Histogram bias_samples;
   
   Sampleset(State laststate){
-    accel_samples=new Histogram(-5,5,0.01);
+    accel_samples=new Histogram(-10,10,0.01);
     bias_samples=new Histogram(-5,5,0.01);
   }
 }
@@ -76,20 +77,20 @@ class Graph{
     return sampleset;
   }
   
-  void update(float a_obs, float t){
+  void update(float a_obs, float w_obs, float t){
     // move the current state to the past
     laststate=state;
       
     // pop a new state into the present, with measurements from the IMU
     // if the past didn't exist, then this is the first measurement; no further work to do this iteration
     if(laststate==null){
-      state = new State(a_obs,t,0);
+      state = new State(a_obs,w_obs,t,0);
       state.s=new DegenerateDensityFunction(0);
       state.v=new DegenerateDensityFunction(0);
       state.a=new DegenerateDensityFunction(0);
       return;
     } else {
-      state = new State(a_obs,t,laststate.v.argmax());
+      state = new State(a_obs,w_obs,t,laststate.v.argmax());
     }
     
     //sample the portion of the graph connected to state.a
@@ -238,9 +239,10 @@ void draw(){
       
       // convert to SI units
       float a_obs = reading.ax*MPERSSQUARED_PER_BIT;
+      float w_obs = reading.wy/LSB_PER_DEGREE_PER_SECOND;
       float t = reading.t/1000.0;
       
-      graph.update(a_obs, t);
+      graph.update(a_obs, w_obs, t);
       
     } catch (IMUParseException e){
     }
@@ -277,6 +279,7 @@ void draw(){
       fill(28);
       text("dt="+fround(graph.dt,3)+" s", width-200,height-20 );
       text("a_obs="+fround(graph.state.a_obs,3)+" ms^-2", 5, 20 );
+      text("w_obs="+fround(graph.state.w_obs,3)+" ms^-2", 5, 20+3*height/NPANES );
       text("argmax(v)="+fround(graph.state.v.argmax(),3)+" ms^-1", 5, height/NPANES+20);
       text("argmax(s)="+fround(graph.state.s.argmax(),3)+" m", 5, 2*height/NPANES+20);
       fill(0,0,255);
