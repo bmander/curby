@@ -1,7 +1,7 @@
 import processing.serial.*;
 final String serialPort = "COM14"; // replace this with your serial port. On windows you will need something like "COM1".
 
-int NPANES=4;
+int NPANES=5;
 int NPROBPANES=5;
 
 float MPERSSQUARED_PER_BIT = (1/256.0)*9.807; //(g/LSB)*(m*s^-2/g)=m*s^-2/LSB
@@ -107,6 +107,7 @@ class Graph{
       state.s=new DegenerateDensityFunction(0);
       state.v=new DegenerateDensityFunction(0);
       state.a=new DegenerateDensityFunction(0);
+      state.theta=new DegenerateDensityFunction(0);
       return;
     } else {
       state = new State(a_obs,w_obs,t,laststate.v.argmax());
@@ -126,6 +127,9 @@ class Graph{
     dt = graph.state.t - graph.laststate.t;
     state.v = advance_gaussian( laststate.v, laststate.a, dt );
     state.s = advance_gaussian( laststate.s, laststate.v, dt );
+    
+    //advance rotation
+    state.theta = advance_gaussian( laststate.theta, laststate.w, dt );
   }
   
 }
@@ -157,7 +161,7 @@ void keyPressed(){
 }
 
 void setup(){
-  size(800,660);
+  size(800,850);
   smooth();
   font= loadFont("ArialMT-14.vlw");
   textFont(font);

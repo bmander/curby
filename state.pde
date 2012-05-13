@@ -38,14 +38,16 @@ class State{
     //line(width/2+zoom,0,width/2+zoom,height);
     
     stroke(0);
-    draw_probpane( v, 2, 200.0, 10.0, "argmax(v)="+fround(v.argmax(),3)+" ms^-1", 1.0 );
-    draw_probpane( s, 1, 2000.0, 10.0, "argmax(s)="+fround(s.argmax(),3)+" m", 0.01 );
+    draw_probpane( v, 3, 200.0, 10.0, "argmax(v)="+fround(v.argmax(),3)+" ms^-1", 1.0 );
+    draw_probpane( s, 2, 2000.0, 10.0, "argmax(s)="+fround(s.argmax(),3)+" m", 0.01 );
     
-    draw_probpane( w, 0, 3.0, 1000.0, "argmax(w)="+fround(w.argmax(),3)+" deg/s", 20.0 );
-    draw_obs(w_obs,0,3.0, "w_obs="+fround(w_obs,3)+" deg/s", color(0,0,255),NPANES);
+    draw_probpane( w, 1, 3.0, 1000.0, "argmax(w)="+fround(w.argmax(),3)+" deg/s", 20.0 );
+    draw_obs(w_obs,1,3.0, "w_obs="+fround(w_obs,3)+" deg/s", color(0,0,255),NPANES);
     
-    draw_obs(a_obs,3,zoom, "a_obs="+fround(a_obs,3)+" ms^-2", color(0,0,255),NPANES);
-    draw_probpane(a,3,200.0,10.0, "argmax(a)="+fround(a.argmax(),2)+" ms^-2", 1.0);
+    draw_obs(a_obs,4,zoom, "a_obs="+fround(a_obs,3)+" ms^-2", color(0,0,255),NPANES);
+    draw_probpane(a,4,200.0,10.0, "argmax(a)="+fround(a.argmax(),2)+" ms^-2", 1.0);
+    
+    draw_probpane(theta,0,3.0,10.0, "argmax(theta)="+fround(theta.argmax(),3)+" deg", 20.0);
     
 
   }

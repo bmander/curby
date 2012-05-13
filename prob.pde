@@ -96,7 +96,7 @@ class DoubleExponentialDensityFunction extends ProbabilityDensityFunction{
   }
   
   float stddev(){
-    throw new UnsupportedOperationException();
+    return 2*1/tau;
   }
   
   
