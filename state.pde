@@ -4,6 +4,7 @@ class State{
   ProbabilityDensityFunction s;
   ProbabilityDensityFunction v;
   ProbabilityDensityFunction a;
+  ProbabilityDensityFunction theta;
   float t;
   
   float a_obs;
@@ -14,7 +15,8 @@ class State{
     this.a_obs=a_obs;
     this.t=t;
     
-    this.a=new DoubleExponentialDensityFunction( -v*TIMIDNESS, WANDERLUST );;
+    this.a=new DoubleExponentialDensityFunction( -v*TIMIDNESS, WANDERLUST );
+    this.theta = new UniformDensityFunction(-20,20);
   }
   
   void setA(ProbabilityDensityFunction a){
@@ -29,14 +31,15 @@ class State{
     line(width/2+zoom,0,width/2+zoom,height);
     
     stroke(0);
-    line(zoom*a_obs+width/2,0,zoom*a_obs+width/2,height/3);
-    v.draw(-2.0, 2.0, width/2, 1*height/3, 10, 200.0);
-    s.draw(-2.0, 2.0, width/2, 0*height/3, 10, 200.0);
+    line(zoom*a_obs+width/2,0,zoom*a_obs+width/2,height/NPANES);
+    v.draw(-2.0, 2.0, width/2, 2*height/NPANES, 10, 200.0);
+    s.draw(-2.0, 2.0, width/2, 1*height/NPANES, 10, 200.0);
+    theta.draw(-100,100,width/2, 0*height/NPANES, 1000, 8);
     
-    if(this.a!=null){
-      strokeWeight(2);
-      stroke(0,0,255);
-      a.draw(-2.0, 2.0, width/2, 2*height/3, 10, 200.0);
-    }
+    strokeWeight(2);
+    stroke(0,0,255);
+    a.draw(-2.0, 2.0, width/2, 3*height/NPANES, 10, 200.0);
+    
+
   }
 }

@@ -1,6 +1,8 @@
 import processing.serial.*;
 final String serialPort = "COM14"; // replace this with your serial port. On windows you will need something like "COM1".
 
+int NPANES=4;
+
 float MPERSSQUARED_PER_BIT = (1/256.0)*9.807; //(g/LSB)*(m*s^-2/g)=m*s^-2/LSB
 
 int MODE_AVS = 0;
@@ -132,7 +134,7 @@ void keyPressed(){
 }
 
 void setup(){
-  size(800,500);
+  size(800,660);
   smooth();
   font= loadFont("ArialMT-14.vlw");
   textFont(font);
@@ -274,8 +276,8 @@ void draw(){
       fill(28);
       text("dt="+fround(graph.dt,3)+" s", width-200,height-20 );
       text("a_obs="+fround(graph.state.a_obs,3)+" ms^-2", 5, 20 );
-      text("argmax(v)="+fround(graph.state.v.argmax(),3)+" ms^-1", 5, height/3+20);
-      text("argmax(s)="+fround(graph.state.s.argmax(),3)+" m", 5, 2*height/3+20);
+      text("argmax(v)="+fround(graph.state.v.argmax(),3)+" ms^-1", 5, height/NPANES+20);
+      text("argmax(s)="+fround(graph.state.s.argmax(),3)+" m", 5, 2*height/NPANES+20);
       fill(0,0,255);
       text("argmax(a)="+fround(graph.state.a.argmax(),2)+" ms^-2", 5, 20+20);
       graph.state.draw(200.0);
