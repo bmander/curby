@@ -115,6 +115,7 @@ class Graph{
     state.bias = new HistogramDensityFunction( smp.bias_samples );
     state.a = new HistogramDensityFunction( smp.accel_samples );
     state.wbias = new HistogramDensityFunction( smp.wbias_samples );
+    state.w = new HistogramDensityFunction( smp.w_samples );
     
     //update current state velocity and position using analytical methods
     dt = graph.state.t - graph.laststate.t;
