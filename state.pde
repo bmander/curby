@@ -38,7 +38,7 @@ class State{
     
     stroke(0);
     draw_probpane( v, 2, 200.0, 10.0, "argmax(v)="+fround(v.argmax(),3)+" ms^-1", 1.0 );
-    draw_probpane( s, 1, 200.0, 10.0, "argmax(s)="+fround(s.argmax(),3)+" m", 1.0 );
+    draw_probpane( s, 1, 2000.0, 10.0, "argmax(s)="+fround(s.argmax(),3)+" m", 0.01 );
     
     draw_probpane( w, 0, 3.0, 1000.0, "argmax(w)="+fround(w.argmax(),3)+" deg/s", 20.0 );
     draw_obs(w_obs,0,3.0, "w_obs="+fround(w_obs,3)+" deg/s", color(0,0,255),NPANES);

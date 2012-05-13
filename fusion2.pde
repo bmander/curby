@@ -224,9 +224,19 @@ ProbabilityDensityFunction advance_gaussian( ProbabilityDensityFunction x0, Prob
 
 }
 
-void draw_histogram(Histogram histogram, int pane, float xscale, float yscale, String caption){
+void draw_histogram(Histogram histogram, int pane, float xscale, float yscale, String caption, float tickpitch){
+  float functionwidth = (width/2)/xscale;
+  //draw scale ticks
+  draw_obs(0,pane,xscale,null, color(200),NPROBPANES);
+  for(float i=0; i<functionwidth; i+=tickpitch){
+    draw_obs(i,pane,xscale,null, color(200),NPROBPANES);
+    draw_obs(-i,pane,xscale,null, color(200),NPROBPANES);
+  }
+  
   histogram.draw(width/2,pane*height/NPROBPANES,xscale,yscale);
   text(caption,5,20+(NPROBPANES-pane-1)*height/NPROBPANES);
+  
+
 }
 
 void draw_probpane(ProbabilityDensityFunction p, int pane, float xscale, float yscale, String caption, float tickpitch){
@@ -300,8 +310,8 @@ void draw(){
     //draw posteriors
     if(sampleset.accel_samples!=null){
       fill(0);
-      draw_histogram( sampleset.accel_samples, 4, 200, 0.0002, "'a' sample histogram" );
-      draw_histogram( sampleset.bias_samples, 2, 200, 0.0002, "'bias' sample histogram" );
+      draw_histogram( sampleset.accel_samples, 4, 200, 0.0002, "'a' sample histogram", 1.0 );
+      draw_histogram( sampleset.bias_samples, 2, 200, 0.0002, "'bias' sample histogram", 1.0 );
     }
     
   } else {
