@@ -60,6 +60,8 @@ class Graph{
     ProbabilityDensityFunction last_bias_proposal_dist = new UniformDensityFunction(laststate.bias.left(),laststate.bias.right());
     ProbabilityDensityFunction bias_movement_proposal_dist = graph.bias_movement_prior;//new UniformDensityFunction(bias_movement_prior.left(),bias_movement_prior.right());
     ProbabilityDensityFunction noise_proposal_dist = graph.noise_prior;//new UniformDensityFunction(noise_prior.left(),noise_prior.right());
+    
+    ProbabilityDensityFunction last_wbias_proposal_dist = new UniformDensityFunction(laststate.wbias.left(),laststate.wbias.right());
   
     for(int i=0; i<n; i++){
       float last_bias_proposal = last_bias_proposal_dist.sample();
@@ -67,6 +69,8 @@ class Graph{
       float noise_proposal = noise_proposal_dist.sample();
       float bias_proposal = last_bias_proposal+bias_movement_proposal;
       float accel_proposal = state.a_obs-(bias_proposal+noise_proposal);
+      
+      float wbias_proposal = last_wbias_proposal_dist.sample();
     
       //likelihood of sample
       float likelihood = 1.0;
@@ -77,6 +81,7 @@ class Graph{
       
       sampleset.accel_samples.add( accel_proposal, likelihood );
       sampleset.bias_samples.add( bias_proposal, likelihood );
+      sampleset.wbias_samples.add( wbias_proposal, likelihood );
     }
     
     return sampleset;
