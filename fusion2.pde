@@ -17,6 +17,7 @@ float SPINNYNESS=0.1; //tau of exponential that describes the tendancy to spin
 float BIAS_WANDER=0.0001; //stddev of movement of bias between successive time slices
 float ACCEL_NOISE_RMS=0.038; //data sheet value for accelerometer
 float ACCEL_NOISE_FUDGE=1.2; //it seems slightly higher in practice
+float GYRO_NOISE_RMS=0.038; //degrees per second
 
 IMU imu;
 PFont font;
@@ -45,6 +46,7 @@ class Graph{
   
   ProbabilityDensityFunction bias_movement_prior;
   ProbabilityDensityFunction noise_prior;
+  ProbabilityDensityFunction wnoise_prior;
  
   State laststate;
   State state;
@@ -52,6 +54,7 @@ class Graph{
   Graph(){
     bias_movement_prior = new GaussianDensityFunction(0,BIAS_WANDER);
     noise_prior = new GaussianDensityFunction(0,ACCEL_NOISE_FUDGE*ACCEL_NOISE_RMS);
+    wnoise_prior = new GaussianDensityFunction(0,GYRO_NOISE_RMS);
   }
   
   Sampleset sample(int n){
