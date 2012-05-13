@@ -224,6 +224,11 @@ ProbabilityDensityFunction advance_gaussian( ProbabilityDensityFunction x0, Prob
 
 }
 
+void draw_histogram(Histogram histogram, int pane, float xscale, float yscale, String caption){
+  histogram.draw(width/2,pane*height/NPROBPANES,xscale,yscale);
+  text(caption,5,20+(NPROBPANES-pane-1)*height/NPROBPANES);
+}
+
 void draw(){
   //float dt=0;
  
@@ -263,28 +268,19 @@ void draw(){
     //draw posteriors
     if(sampleset.accel_samples!=null){
       fill(0);
-      sampleset.accel_samples.draw(width/2,4*height/NPROBPANES,200,0.0002);
-      sampleset.bias_samples.draw(width/2,2*height/NPROBPANES,200,0.0002);
+      draw_histogram( sampleset.accel_samples, 4, 200, 0.0002, "'a' sample histogram" );
+      draw_histogram( sampleset.bias_samples, 2, 200, 0.0002, "'bias' sample histogram" );
     }
     
     //draw text
     fill(255,0,0);
     text("'last_bias' prior distribution",5,20+height/NPROBPANES);
-    fill(0,0,0);
-    text("'a' sample histogram",5,20+20);
-    text("'bias' sample histogram",5,20+2*height/NPROBPANES+20);
-    fill(0,0,0);
   } else {
     if(graph.state!=null){
       background(255);
       fill(28);
       text("dt="+fround(graph.dt,3)+" s", width-200,height-20 );
-      text("a_obs="+fround(graph.state.a_obs,3)+" ms^-2", 5, 20 );
-      text("w_obs="+fround(graph.state.w_obs,3)+" ms^-2", 5, 20+3*height/NPANES );
-      text("argmax(v)="+fround(graph.state.v.argmax(),3)+" ms^-1", 5, height/NPANES+20);
-      text("argmax(s)="+fround(graph.state.s.argmax(),3)+" m", 5, 2*height/NPANES+20);
-      fill(0,0,255);
-      text("argmax(a)="+fround(graph.state.a.argmax(),2)+" ms^-2", 5, 20+20);
+      
       graph.state.draw(200.0);
     }
   }

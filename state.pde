@@ -27,6 +27,20 @@ class State{
     this.a=a;
   }
   
+  void draw_probpane(ProbabilityDensityFunction p, int pane, float xscale, float yscale, String caption){
+    float functionwidth = (width/2)/xscale;
+    p.draw(-functionwidth, functionwidth, width/2, pane*height/NPANES, yscale, xscale);
+    text(caption, 5, height-((pane+1)*height/NPANES-20));
+  }
+  
+  void draw_obs(float x, int pane, float xzoom, String caption){
+    line(xzoom*x+width/2,
+      height-((pane+1)*height/NPANES),
+      xzoom*x+width/2,
+      height-((pane)*height/NPANES));
+    text(caption, 5, height-((pane+1)*height/NPANES-40) );
+  }
+  
   void draw(float zoom){
     strokeWeight(0.5);
     stroke(255,0,0);
@@ -35,18 +49,16 @@ class State{
     line(width/2+zoom,0,width/2+zoom,height);
     
     stroke(0);
-    line(zoom*a_obs+width/2,0,zoom*a_obs+width/2,height/NPANES);
-    v.draw(-2.0, 2.0, width/2, 2*height/NPANES, 10, 200.0);
-    s.draw(-2.0, 2.0, width/2, 1*height/NPANES, 10, 200.0);
-    w.draw(-300,300,width/2, 0*height/NPANES, 1000, 3);
-    line(3*w_obs+width/2,
-      3*height/NPANES,
-      3*w_obs+width/2,
-      height);
+    draw_probpane( v, 2, 200.0, 10.0, "argmax(v)="+fround(v.argmax(),3)+" ms^-1" );
+    draw_probpane( s, 1, 200.0, 10.0, "argmax(s)="+fround(s.argmax(),3)+" m" );
+    
+    draw_probpane( w, 0, 3.0, 1000.0, "argmax(w)="+fround(w.argmax(),3)+" deg/s" );
+    draw_obs(w_obs,0,3.0, "w_obs="+fround(w_obs,3)+" deg/s");
     
     strokeWeight(2);
     stroke(0,0,255);
-    a.draw(-2.0, 2.0, width/2, 3*height/NPANES, 10, 200.0);
+    draw_obs(a_obs,3,zoom, "a_obs="+fround(a_obs,3)+" ms^-2");
+    draw_probpane(a,3,200.0,10.0, "argmax(a)="+fround(a.argmax(),2)+" ms^-2");
     
 
   }
