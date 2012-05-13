@@ -47,7 +47,7 @@ class State{
     draw_obs(a_obs,4,zoom, "a_obs="+fround(a_obs,3)+" ms^-2", color(0,0,255),NPANES);
     draw_probpane(a,4,200.0,10.0, "argmax(a)="+fround(a.argmax(),2)+" ms^-2", 1.0);
     
-    draw_probpane(theta,0,10.0,10.0, "argmax(theta)="+fround(theta.argmax(),3)+" deg", 5.0);
+    draw_probpane(theta,0,30.0,10.0, "argmax(theta)="+fround(theta.argmax(),3)+" deg", 5.0);
     
 
   }

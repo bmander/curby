@@ -31,12 +31,14 @@ class Sampleset {
   Histogram bias_samples;
   Histogram w_samples;
   Histogram wbias_samples;
+  Histogram theta_samples;
   
   Sampleset(State laststate){
     accel_samples=new Histogram(-10,10,0.02);
     bias_samples=new Histogram(-5,5,0.01);
     w_samples=new Histogram(-150,150,0.05);
     wbias_samples=new Histogram(-1,1,0.07);
+    theta_samples=new Histogram(-90,90,0.1);
   }
 }
 
@@ -66,6 +68,19 @@ class Graph{
     
     ProbabilityDensityFunction last_wbias_proposal_dist = new UniformDensityFunction(laststate.wbias.left(),laststate.wbias.right());
     ProbabilityDensityFunction wnoise_proposal_dist = graph.wnoise_prior;
+    
+    ProbabilityDensityFunction last_w_proposal_dist;
+    ProbabilityDensityFunction last_theta_proposal_dist;
+    if(laststate.w.left()==laststate.w.right()){
+      last_w_proposal_dist=laststate.w; //it's a degenerate distribution
+    } else {
+      last_w_proposal_dist = new UniformDensityFunction(laststate.w.left(), laststate.w.right());
+    }
+    if(laststate.theta.left()==laststate.theta.right()){
+      last_theta_proposal_dist=laststate.theta; //degenerate function
+    } else {
+      last_theta_proposal_dist=new UniformDensityFunction(laststate.theta.left(), laststate.theta.right());
+    }
   
     for(int i=0; i<n; i++){
       float last_bias_proposal = last_bias_proposal_dist.sample();
@@ -77,6 +92,10 @@ class Graph{
       float wbias_proposal = last_wbias_proposal_dist.sample();
       float wnoise_proposal = wnoise_proposal_dist.sample();
       float w_proposal = state.w_obs-wbias_proposal-wnoise_proposal;
+      
+      float last_w_proposal = last_w_proposal_dist.sample();
+      float last_theta_proposal = last_theta_proposal_dist.sample();
+      float theta_proposal = last_theta_proposal + last_w_proposal*dt;
     
       //likelihood of sample
       float likelihood = 1.0;
@@ -84,6 +103,14 @@ class Graph{
       likelihood *= laststate.bias.probDensity(last_bias_proposal)/last_bias_proposal_dist.probDensity(last_bias_proposal);
       likelihood *= laststate.wbias.probDensity(wbias_proposal)/last_wbias_proposal_dist.probDensity(wbias_proposal);
       likelihood *= state.w.probDensity(w_proposal);
+      
+      if(laststate.w.left()!=laststate.w.right()){
+        likelihood *= laststate.w.probDensity(last_w_proposal)/last_w_proposal_dist.probDensity(last_w_proposal);
+      }
+      if(laststate.theta.left()!=laststate.theta.right()){
+        likelihood *= laststate.theta.probDensity(last_theta_proposal)/last_theta_proposal_dist.probDensity(last_theta_proposal);
+      }
+      
       //likelihood *= bias_movement_prior.probDensity(bias_movement_proposal)/bias_movement_proposal_dist.probDensity(bias_movement_proposal);
       //likelihood *= noise_prior.probDensity(noise_proposal)/noise_proposal_dist.probDensity(noise_proposal);
       
@@ -91,6 +118,7 @@ class Graph{
       sampleset.bias_samples.add( bias_proposal, likelihood );
       sampleset.wbias_samples.add( wbias_proposal, likelihood );
       sampleset.w_samples.add( w_proposal, likelihood );
+      sampleset.theta_samples.add( theta_proposal, likelihood );
     }
     
     return sampleset;
@@ -107,6 +135,7 @@ class Graph{
       state.s=new DegenerateDensityFunction(0);
       state.v=new DegenerateDensityFunction(0);
       state.a=new DegenerateDensityFunction(0);
+      state.w=new DegenerateDensityFunction(0);
       state.theta=new DegenerateDensityFunction(0);
       return;
     } else {
@@ -122,6 +151,7 @@ class Graph{
     state.a = new HistogramDensityFunction( smp.accel_samples );
     state.wbias = new HistogramDensityFunction( smp.wbias_samples );
     state.w = new HistogramDensityFunction( smp.w_samples );
+    state.theta = new HistogramDensityFunction( smp.theta_samples );
     
     //update current state velocity and position using analytical methods
     dt = graph.state.t - graph.laststate.t;
@@ -129,7 +159,7 @@ class Graph{
     state.s = advance_gaussian( laststate.s, laststate.v, dt );
     
     //advance rotation
-    state.theta = advance_gaussian( laststate.theta, laststate.w, dt );
+    //state.theta = advance_gaussian( laststate.theta, laststate.w, dt );
   }
   
 }
@@ -299,8 +329,8 @@ void draw_obs(float x, int pane, float xzoom, String caption, color strokecolor,
 void draw(){
   //float dt=0;
  
-  //running=false;
-  //runonce=true;
+  running=false;
+  runonce=true;
   // update the state until the serial stream runs dry
   while(running || runonce){
     
@@ -317,7 +347,7 @@ void draw(){
       float w_obs = -reading.wy/LSB_PER_DEGREE_PER_SECOND;
       float t = reading.t/1000.0;
       
-      graph.update(a_obs, w_obs, t, 7000);
+      graph.update(a_obs, w_obs, t, 50000);
       
     } catch (IMUParseException e){
     }
@@ -338,8 +368,8 @@ void draw(){
       fill(0);
       draw_histogram( sampleset.accel_samples, 4, 200, 0.002, "'a' sample histogram", 1.0 );
       draw_histogram( sampleset.bias_samples, 2, 200, 0.002, "'bias' sample histogram", 1.0 );
-      draw_histogram( sampleset.w_samples, 1, 100, 0.02, "'w' sample histogram", 1.0 );
-      draw_histogram( sampleset.wbias_samples, 0, 200, 0.02, "'wbias' sample histogram", 0.1 );
+      draw_histogram( sampleset.w_samples, 1, 100, 0.002, "'w' sample histogram", 1.0 );
+      draw_histogram( sampleset.wbias_samples, 0, 200, 0.002, "'wbias' sample histogram", 0.1 );
     }
     
   } else {
@@ -352,5 +382,5 @@ void draw(){
     }
   }
   
-  //delay(200);
+  delay(1000);
 }
