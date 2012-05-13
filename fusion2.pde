@@ -34,8 +34,8 @@ class Sampleset {
   Sampleset(State laststate){
     accel_samples=new Histogram(-10,10,0.01);
     bias_samples=new Histogram(-5,5,0.01);
-    w_samples=new Histogram(-150,150,0.01);
-    wbias_samples=new Histogram(-1,1,0.01);
+    w_samples=new Histogram(-150,150,0.1);
+    wbias_samples=new Histogram(-1,1,0.1);
   }
 }
 
@@ -77,6 +77,8 @@ class Graph{
       float likelihood = 1.0;
       likelihood *= state.a.probDensity(accel_proposal);
       likelihood *= laststate.bias.probDensity(last_bias_proposal)/last_bias_proposal_dist.probDensity(last_bias_proposal);
+      likelihood *= laststate.wbias.probDensity(wbias_proposal)/last_wbias_proposal_dist.probDensity(wbias_proposal);
+      likelihood *= state.w.probDensity(w_proposal);
       //likelihood *= bias_movement_prior.probDensity(bias_movement_proposal)/bias_movement_proposal_dist.probDensity(bias_movement_proposal);
       //likelihood *= noise_prior.probDensity(noise_proposal)/noise_proposal_dist.probDensity(noise_proposal);
       
@@ -321,10 +323,10 @@ void draw(){
     //draw posteriors
     if(sampleset.accel_samples!=null){
       fill(0);
-      draw_histogram( sampleset.accel_samples, 4, 200, 0.0002, "'a' sample histogram", 1.0 );
-      draw_histogram( sampleset.bias_samples, 2, 200, 0.0002, "'bias' sample histogram", 1.0 );
-      draw_histogram( sampleset.w_samples, 1, 100, 0.0002, "'w' sample histogram", 1.0 );
-      draw_histogram( sampleset.wbias_samples, 0, 200, 0.0002, "'wbias' sample histogram", 0.1 );
+      draw_histogram( sampleset.accel_samples, 4, 200, 0.002, "'a' sample histogram", 1.0 );
+      draw_histogram( sampleset.bias_samples, 2, 200, 0.002, "'bias' sample histogram", 1.0 );
+      draw_histogram( sampleset.w_samples, 1, 100, 0.02, "'w' sample histogram", 1.0 );
+      draw_histogram( sampleset.wbias_samples, 0, 200, 0.02, "'wbias' sample histogram", 0.1 );
     }
     
   } else {
