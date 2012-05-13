@@ -4,7 +4,8 @@ final String serialPort = "COM14"; // replace this with your serial port. On win
 int NPANES=5;
 int NPROBPANES=5;
 
-float MPERSSQUARED_PER_BIT = (1/256.0)*9.807; //(g/LSB)*(m*s^-2/g)=m*s^-2/LSB
+float EARTH_GRAVITY=9.807;
+float MPERSSQUARED_PER_BIT = (1/256.0)*EARTH_GRAVITY; //(g/LSB)*(m*s^-2/g)=m*s^-2/LSB
 float LSB_PER_DEGREE_PER_SECOND = 14.375;
 
 int MODE_AVS = 0;
@@ -87,7 +88,7 @@ class Graph{
       float bias_movement_proposal = bias_movement_proposal_dist.sample();
       float noise_proposal = noise_proposal_dist.sample();
       float bias_proposal = last_bias_proposal+bias_movement_proposal;
-      float accel_proposal = state.a_obs-(bias_proposal+noise_proposal);
+      float accel_total_proposal = state.a_obs-(bias_proposal+noise_proposal);
       
       float wbias_proposal = last_wbias_proposal_dist.sample();
       float wnoise_proposal = wnoise_proposal_dist.sample();
@@ -96,10 +97,14 @@ class Graph{
       float last_w_proposal = last_w_proposal_dist.sample();
       float last_theta_proposal = last_theta_proposal_dist.sample();
       float theta_proposal = last_theta_proposal + last_w_proposal*dt;
+      
+      float a_gravsensed_proposal = sin(radians(theta_proposal))*EARTH_GRAVITY;
+      float a_linsensed_proposal = accel_total_proposal-a_gravsensed_proposal;
+      float a_linear_proposal = a_linsensed_proposal/cos(radians(theta_proposal));
     
       //likelihood of sample
       float likelihood = 1.0;
-      likelihood *= state.a.probDensity(accel_proposal);
+      likelihood *= state.a.probDensity(a_linear_proposal);
       likelihood *= laststate.bias.probDensity(last_bias_proposal)/last_bias_proposal_dist.probDensity(last_bias_proposal);
       likelihood *= laststate.wbias.probDensity(wbias_proposal)/last_wbias_proposal_dist.probDensity(wbias_proposal);
       likelihood *= state.w.probDensity(w_proposal);
@@ -114,7 +119,7 @@ class Graph{
       //likelihood *= bias_movement_prior.probDensity(bias_movement_proposal)/bias_movement_proposal_dist.probDensity(bias_movement_proposal);
       //likelihood *= noise_prior.probDensity(noise_proposal)/noise_proposal_dist.probDensity(noise_proposal);
       
-      sampleset.accel_samples.add( accel_proposal, likelihood );
+      sampleset.accel_samples.add( a_linear_proposal, likelihood );
       sampleset.bias_samples.add( bias_proposal, likelihood );
       sampleset.wbias_samples.add( wbias_proposal, likelihood );
       sampleset.w_samples.add( w_proposal, likelihood );
