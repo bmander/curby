@@ -314,7 +314,7 @@ void draw(){
       
       // convert to SI units
       float a_obs = reading.ax*MPERSSQUARED_PER_BIT;
-      float w_obs = reading.wy/LSB_PER_DEGREE_PER_SECOND;
+      float w_obs = -reading.wy/LSB_PER_DEGREE_PER_SECOND;
       float t = reading.t/1000.0;
       
       graph.update(a_obs, w_obs, t, 7000);
