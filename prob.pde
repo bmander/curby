@@ -132,7 +132,7 @@ class UniformDensityFunction extends ProbabilityDensityFunction{
   }
   
   float argmax(){
-    throw new UnsupportedOperationException();
+    return (low+high)/2;
   }
   
   float stddev(){

@@ -141,7 +141,7 @@ class Graph{
       state.v=new DegenerateDensityFunction(0);
       state.a=new DegenerateDensityFunction(0);
       state.w=new DegenerateDensityFunction(0);
-      state.theta=new DegenerateDensityFunction(0);
+      state.theta=new UniformDensityFunction(-3,3);
       return;
     } else {
       state = new State(a_obs,w_obs,t,laststate.v.argmax());
