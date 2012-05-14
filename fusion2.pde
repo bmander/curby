@@ -38,7 +38,7 @@ class Sampleset {
     accel_samples=new Histogram(-10,10,0.02);
     bias_samples=new Histogram(-5,5,0.01);
     w_samples=new Histogram(-150,150,0.05);
-    wbias_samples=new Histogram(-1,1,0.02);
+    wbias_samples=new Histogram(-5,5,0.02);
     theta_samples=new Histogram(-90,90,0.1);
   }
 }
@@ -63,11 +63,11 @@ class Graph{
   Sampleset sample(int n){
     Sampleset sampleset = new Sampleset(laststate);
   
-    ProbabilityDensityFunction last_bias_proposal_dist = new UniformDensityFunction(laststate.bias.left(),laststate.bias.right());
+    ProbabilityDensityFunction last_bias_proposal_dist = new GaussianDensityFunction(laststate.bias.mean(), laststate.bias.stddev());
     ProbabilityDensityFunction bias_movement_proposal_dist = graph.bias_movement_prior;//new UniformDensityFunction(bias_movement_prior.left(),bias_movement_prior.right());
     ProbabilityDensityFunction noise_proposal_dist = graph.noise_prior;//new UniformDensityFunction(noise_prior.left(),noise_prior.right());
     
-    ProbabilityDensityFunction last_wbias_proposal_dist = new UniformDensityFunction(laststate.wbias.left(),laststate.wbias.right());
+    ProbabilityDensityFunction last_wbias_proposal_dist = new GaussianDensityFunction(laststate.wbias.mean(), laststate.wbias.stddev());
     ProbabilityDensityFunction wnoise_proposal_dist = graph.wnoise_prior;
     
     ProbabilityDensityFunction last_w_proposal_dist = new GaussianDensityFunction(laststate.w.mean(), laststate.w.stddev());
