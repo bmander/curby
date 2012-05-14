@@ -15,7 +15,7 @@ int MODE_PROB = 1;
 float TIMIDNESS=5.0; //tendancy to decelerate given a velocity
 float WANDERLUST=4.0; //tau of exponential that describes the acceleration prior
 float SPINNYNESS=0.1; //tau of exponential that describes the tendancy to spin
-float BIAS_WANDER=0.0001; //stddev of movement of bias between successive time slices
+float BIAS_WANDER=0.00001; //stddev of movement of bias between successive time slices
 float ACCEL_NOISE_RMS=0.038; //data sheet value for accelerometer
 float ACCEL_NOISE_FUDGE=1.2; //it seems slightly higher in practice
 float GYRO_NOISE_RMS=0.038; //degrees per second
@@ -142,11 +142,11 @@ class Graph{
     sampleset = smp; //export it to the global scope so we can draw it
     
     //update probability distriubtions using sample set
-    state.bias = new HistogramDensityFunction( smp.bias_samples.smooth(3) );
-    state.a = new HistogramDensityFunction( smp.accel_samples.smooth(3) );
-    state.wbias = new HistogramDensityFunction( smp.wbias_samples.smooth(3) );
-    state.w = new HistogramDensityFunction( smp.w_samples.smooth(3) );
-    state.theta = new HistogramDensityFunction( smp.theta_samples.smooth(3) );
+    state.bias = new HistogramDensityFunction( smp.bias_samples.smooth(1) );
+    state.a = new HistogramDensityFunction( smp.accel_samples.smooth(1) );
+    state.wbias = new HistogramDensityFunction( smp.wbias_samples.smooth(1) );
+    state.w = new HistogramDensityFunction( smp.w_samples.smooth(1) );
+    state.theta = new HistogramDensityFunction( smp.theta_samples.smooth(1) );
     
     //update current state velocity and position using analytical methods
     dt = graph.state.t - graph.laststate.t;
@@ -324,8 +324,8 @@ void draw_obs(float x, int pane, float xzoom, String caption, color strokecolor,
 void draw(){
   //float dt=0;
  
-  running=false;
-  runonce=true;
+  //running=false;
+  //runonce=true;
   // update the state until the serial stream runs dry
   while(running || runonce){
     
@@ -342,7 +342,7 @@ void draw(){
       float w_obs = -reading.wy/LSB_PER_DEGREE_PER_SECOND;
       float t = reading.t/1000.0;
       
-      graph.update(a_obs, w_obs, t, 50000);
+      graph.update(a_obs, w_obs, t, 3000);
       
     } catch (IMUParseException e){
     }
@@ -361,10 +361,10 @@ void draw(){
     //draw posteriors
     if(sampleset.accel_samples!=null){
       fill(0);
-      draw_histogram( sampleset.accel_samples, 4, 200, 0.002, "'a' sample histogram", 1.0 );
-      draw_histogram( sampleset.bias_samples, 2, 200, 0.002, "'bias' sample histogram", 1.0 );
-      draw_histogram( sampleset.w_samples, 1, 100, 0.002, "'w' sample histogram", 1.0 );
-      draw_histogram( sampleset.wbias_samples, 0, 200, 0.002, "'wbias' sample histogram", 0.1 );
+      draw_histogram( sampleset.accel_samples, 4, 200, 0.02, "'a' sample histogram", 1.0 );
+      draw_histogram( sampleset.bias_samples, 2, 200, 0.02, "'bias' sample histogram", 1.0 );
+      draw_histogram( sampleset.w_samples, 1, 100, 0.02, "'w' sample histogram", 1.0 );
+      draw_histogram( sampleset.wbias_samples, 0, 200, 0.02, "'wbias' sample histogram", 0.1 );
     }
     
   } else {
