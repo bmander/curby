@@ -34,12 +34,22 @@ class Sampleset {
   Histogram wbias_samples;
   Histogram theta_samples;
   
+  int n=5;
+  
   Sampleset(State laststate){
     accel_samples=new Histogram(-10,10,0.02);
     bias_samples=new Histogram(-5,5,0.01);
     w_samples=new Histogram(-150,150,0.05);
     wbias_samples=new Histogram(-5,5,0.02);
     theta_samples=new Histogram(-90,90,0.1);
+  }
+  
+  void draw(){
+    draw_histogram( sampleset.accel_samples, 4, 200, 0.02, "'a' sample histogram", 1.0, n );
+    draw_histogram( sampleset.bias_samples, 3, 200, 0.02, "'bias' sample histogram", 1.0, n );
+    draw_histogram( sampleset.w_samples, 2, 100, 0.02, "'w' sample histogram", 1.0, n );
+    draw_histogram( sampleset.wbias_samples, 1, 200, 0.02, "'wbias' sample histogram", 0.1, n );
+    draw_histogram( sampleset.theta_samples, 0, 100, 0.06, "'theta' sample histogram", 1.0, n );
   }
 }
 
@@ -62,17 +72,17 @@ void setup(){
   graph = new Graph();
 }
 
-void draw_histogram(Histogram histogram, int pane, float xscale, float yscale, String caption, float tickpitch){
+void draw_histogram(Histogram histogram, int pane, float xscale, float yscale, String caption, float tickpitch, int nprobpanes){
   float functionwidth = (width/2)/xscale;
   //draw scale ticks
-  draw_obs(0,pane,xscale,null, color(200),NPROBPANES);
-  for(float i=0; i<functionwidth; i+=tickpitch){
-    draw_obs(i,pane,xscale,null, color(200),NPROBPANES);
-    draw_obs(-i,pane,xscale,null, color(200),NPROBPANES);
+  draw_obs(0,pane,xscale,null, color(255,200,200),nprobpanes);
+  for(float i=tickpitch; i<functionwidth; i+=tickpitch){
+    draw_obs(i,pane,xscale,null, color(200),nprobpanes);
+    draw_obs(-i,pane,xscale,null, color(200),nprobpanes);
   }
   
-  histogram.draw(width/2,pane*height/NPROBPANES,xscale,yscale);
-  text(caption,5,20+(NPROBPANES-pane-1)*height/NPROBPANES);
+  histogram.draw(width/2,pane*height/nprobpanes,xscale,yscale);
+  text(caption,5,20+(nprobpanes-pane-1)*height/nprobpanes);
   
 
 }
@@ -162,25 +172,16 @@ void draw(){
     
   }
  
+  background(255);
+ 
   //draw
   if(mode==MODE_PROB){
-    background(255);
     
-    //draw priors
-    draw_probpane(graph.laststate.bias, 3, 200.0, 5.0, "'last_bias prior' distribution", 1, NPROBPANES);
-    
-    //draw posteriors
-    if(sampleset.accel_samples!=null){
-      fill(0);
-      draw_histogram( sampleset.accel_samples, 4, 200, 0.02, "'a' sample histogram", 1.0 );
-      draw_histogram( sampleset.bias_samples, 2, 200, 0.02, "'bias' sample histogram", 1.0 );
-      draw_histogram( sampleset.w_samples, 1, 100, 0.02, "'w' sample histogram", 1.0 );
-      draw_histogram( sampleset.wbias_samples, 0, 200, 0.02, "'wbias' sample histogram", 0.1 );
-    }
+    fill(0);
+    sampleset.draw();
     
   } else {
     if(graph.state!=null){
-      background(255);
       fill(28);
       text("dt="+fround(graph.dt,3)+" s", width-200,height-20 );
       
