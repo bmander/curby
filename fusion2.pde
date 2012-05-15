@@ -44,30 +44,7 @@ class Sampleset {
 }
 
 Graph graph;
-
 Sampleset sampleset;
-
-void keyPressed(){
-  if(key==' '){ //reset
-    graph.state.s=new DegenerateDensityFunction(0);
-    graph.state.v=new DegenerateDensityFunction(0);
-  } else if(key=='p'){ //pause
-    if(running){
-      running=false;
-    } else {
-      imu.clear();
-      running=true;
-    }
-  } else if(key=='n'){  //next
-    runonce=true;
-  } else if(key=='m'){  //mode
-    if(mode==MODE_AVS){
-      mode=MODE_PROB;
-    } else{
-      mode=MODE_AVS;
-    }
-  } 
-}
 
 void setup(){
   size(800,850);
@@ -83,78 +60,6 @@ void setup(){
   mode=MODE_AVS;
   
   graph = new Graph();
-}
-
-ProbabilityDensityFunction advance_by_sampling( ProbabilityDensityFunction x0, ProbabilityDensityFunction dx, float dt, int n ){
-  
-  float leftsupport = x0.left()+dx.left()*dt;
-  float rightsupport = x0.right()+dx.right()*dt;
-  
-  if(leftsupport>rightsupport){
-    throw new RuntimeException("left support can't be righter than right support x0:("+x0.left()+"-"+x0.right()+") dx:("+dx.left()+"-"+dx.right()+") support:"+leftsupport+" "+rightsupport);
-  }
-  
-  println( "support: "+leftsupport+"-"+rightsupport );
-  
-  float resolution = (rightsupport-leftsupport)/100;
-  
-  if(resolution<0.02){
-    resolution=0.02;
-  }
-  
-  Histogram x1 = new Histogram(leftsupport,rightsupport,resolution);
-  
-  //cache these in case calculating them is difficult; we'll need them lots
-  float x0_left = x0.left();
-  float x0_right = x0.right();
-  float dx_left = dx.left();
-  float dx_right = dx.right();
-  
-  float x0_proposal;
-  float dx_proposal;
-  float x1_proposal;
-  float likelihood;
-  
-  for(int i=0; i<n; i++){
-    x0_proposal = random(x0_left,x0_right);
-    dx_proposal = random(dx_left,dx_right);
-    
-    x1_proposal = x0_proposal+dx_proposal*dt;
-        
-    likelihood = 1;
-    if(x0_left!=x0_right){
-      likelihood *= x0.probDensity(x0_proposal)/(1/(x0_right-x0_left));
-    }
-    if(dx_left!=dx_right){
-      likelihood *= dx.probDensity(dx_proposal)/(1/(dx_right-dx_left));
-    }
-        
-    try{
-      x1.add( x1_proposal, likelihood );
-    }catch(ArrayIndexOutOfBoundsException ex){
-      println( "support "+leftsupport+"-"+rightsupport );
-      println( x1_proposal );
-      println( resolution );
-      println( (x1_proposal-leftsupport)/resolution );
-      throw ex;
-    }
-  }
-  
-  
-  return new HistogramDensityFunction( x1 );
-  
-}
-
-ProbabilityDensityFunction advance_degenerate( ProbabilityDensityFunction x0, ProbabilityDensityFunction dx, float dt ){
-  
-  return new DegenerateDensityFunction(x0.argmax() + dx.argmax()*dt);
-
-}
-
-ProbabilityDensityFunction advance_gaussian( ProbabilityDensityFunction x0, ProbabilityDensityFunction dx, float dt ){
-  
-  return new GaussianDensityFunction(x0.argmax() + dx.argmax()*dt, sqrt(sq(x0.stddev())+sq(dx.stddev()*dt)));
-
 }
 
 void draw_histogram(Histogram histogram, int pane, float xscale, float yscale, String caption, float tickpitch){
@@ -203,6 +108,28 @@ void draw_obs(float x, int pane, float xzoom, String caption, color strokecolor,
   if(caption!=null){
     text(caption, 5, height-((pane+1)*height/npanes-40) );
   }
+}
+
+void keyPressed(){
+  if(key==' '){ //reset
+    graph.state.s=new DegenerateDensityFunction(0);
+    graph.state.v=new DegenerateDensityFunction(0);
+  } else if(key=='p'){ //pause
+    if(running){
+      running=false;
+    } else {
+      imu.clear();
+      running=true;
+    }
+  } else if(key=='n'){  //next
+    runonce=true;
+  } else if(key=='m'){  //mode
+    if(mode==MODE_AVS){
+      mode=MODE_PROB;
+    } else{
+      mode=MODE_AVS;
+    }
+  } 
 }
 
 void draw(){

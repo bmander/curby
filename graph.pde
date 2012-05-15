@@ -1,3 +1,16 @@
+
+ProbabilityDensityFunction advance_degenerate( ProbabilityDensityFunction x0, ProbabilityDensityFunction dx, float dt ){
+  
+  return new DegenerateDensityFunction(x0.argmax() + dx.argmax()*dt);
+
+}
+
+ProbabilityDensityFunction advance_gaussian( ProbabilityDensityFunction x0, ProbabilityDensityFunction dx, float dt ){
+  
+  return new GaussianDensityFunction(x0.argmax() + dx.argmax()*dt, sqrt(sq(x0.stddev())+sq(dx.stddev()*dt)));
+
+}
+
 class Graph{
   
   float dt;
